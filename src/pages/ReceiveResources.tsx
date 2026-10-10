@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Check, ChevronLeft, CircleAlert, FileText, Package, Plus, Printer } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, FileText, Package, Plus, Printer } from 'lucide-react'
 import { api } from '../services/api'
 import type { Resource, ResourceCategory, ResourceCustomField, UnitOfMeasure, Supplier } from '../types'
 import { Alert, Badge, Button, Card, CardHeader, Input, PageHeader, Select } from '../components/ui'
-import { formatNumber, formatQuantity } from '../utils'
-import { printDocument } from '../utils/print'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { formatNumber } from '../utils'
+import { printDocument } from '../utils/print'
 
 type Step = 0 | 1 | 2 | 3
 
@@ -14,7 +14,7 @@ interface CustomFieldValues {
   [field_id: string]: string
 }
 
-export default function ReceiveResources() {
+function ReceiveResources() {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>(0)
   const [categories, setCategories] = useState<ResourceCategory[]>([])
@@ -29,7 +29,6 @@ export default function ReceiveResources() {
   const [quantity, setQuantity] = useState('')
   const [supplierName, setSupplierName] = useState('')
   const [documentNumber, setDocumentNumber] = useState('')
-  const [reason, setReason] = useState('')
   const [notes, setNotes] = useState('')
   const [customValues, setCustomValues] = useState<CustomFieldValues>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -52,7 +51,6 @@ export default function ReceiveResources() {
       setSuppliers(sups.data ?? [])
     }
     load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadResources = useCallback(async (catId: string) => {
@@ -90,17 +88,14 @@ export default function ReceiveResources() {
   const selectedUnit = resource?.unit ?? units.find((u) => u.id === resource?.unit_id)
   const parsedQuantity = Number(quantity.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))))
   const quantityValid = Number.isFinite(parsedQuantity) && parsedQuantity > 0
-  const requiredFieldsMissing = fields.filter((f) => f.is_required && !(customValues[f.id] ?? '').trim()).length > 0
 
   const stepOneValid = !!categoryId && !!resourceId
   const stepTwoValid = quantityValid
-  const stepThreeValid = true
 
   const steps = [
-    { label: 'نوع المورد واسمه', done: stepOneValid },
-    { label: 'الكمية ووحدة القياس', done: stepTwoValid },
-    { label: 'بيانات الاستلام', done: stepThreeValid },
-    { label: 'المراجعة والتأكيد', done: false },
+    { label: 'النوع و الاسم', done: stepOneValid },
+    { label: 'الكمية', done: stepTwoValid },
+    { label: 'بيانات الاستلام', done: true },
   ]
 
   const resetForm = () => {
@@ -111,7 +106,6 @@ export default function ReceiveResources() {
     setQuantity('')
     setSupplierName('')
     setDocumentNumber('')
-    setReason('')
     setNotes('')
     setCustomValues({})
     setFields([])
@@ -137,7 +131,6 @@ export default function ReceiveResources() {
       quantity: parsedQuantity,
       document_number: documentNumber || undefined,
       supplier_name: supplierName || undefined,
-      reason: reason || undefined,
       notes: notes || undefined,
       custom_fields: flatFields,
     })
@@ -167,8 +160,6 @@ export default function ReceiveResources() {
     quantityRef.current?.focus()
   }
 
-  const balanceForResource = useMemo(() => resource?.id ?? null, [resource])
-
   return (
     <div className="space-y-5">
       <PageHeader
@@ -181,7 +172,27 @@ export default function ReceiveResources() {
         }
       />
 
-      <Stepper steps={steps} current={step} />
+      <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="خطوات العملية">
+        {steps.map((s, i) => (
+          <li key={i} className="flex items-center gap-2">
+            <span
+              className={[
+                'flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold',
+                i < step || s.done
+                  ? 'border-[#428177] bg-[#428177] text-white'
+                  : i === step
+                  ? 'border-[#428177] bg-white text-[#054239]'
+                  : 'border-gray-300 bg-white text-gray-400',
+              ].join(' ')}
+              aria-hidden
+            >
+              {i < step || s.done ? '✓' : i + 1}
+            </span>
+            <span className={i === step ? 'font-semibold text-[#054239]' : 'text-gray-500'}>{s.label}</span>
+            {i < steps.length - 1 && <span className="mx-1 h-px w-5 bg-gray-300" aria-hidden />}
+          </li>
+        ))}
+      </ol>
 
       {submitError && (
         <Alert tone="danger" title="خطأ">
@@ -216,15 +227,15 @@ export default function ReceiveResources() {
               step === 0
                 ? 'الخطوة 1: اختيار نوع المورد واسمه'
                 : step === 1
-                ? 'الخطوة 2: الكمية ووحدة القياس'
-                : 'الخطوة 3: بيانات الاستلمان'
+                ? 'الخطوة 2: الكمية'
+                : 'الخطوة 3: بيانات الاستلام'
             }
             description={
               step === 0
                 ? 'اختر التصنيف ثم اسم المورد من القائمة'
                 : step === 1
-                ? 'حدد الكمية الواردة ووحدة القياس المعتمدة'
-                : 'الجهة الموردة ومعلومات المستند'
+                ? 'حدد الكمية الواردة'
+                : 'بيانات الجهة الموردة والمستند (اختياري)'
             }
           />
 
@@ -251,13 +262,7 @@ export default function ReceiveResources() {
                         disabled={!categoryId || submitting}
                       />
                     </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setModalOpen(true)}
-                      disabled={!categoryId || submitting}
-                      title="إضافة مورد جديد ضمن هذا النوع"
-                    >
+                    <Button type="button" variant="secondary" onClick={() => setModalOpen(true)} disabled={!categoryId || submitting} title="إضافة مورد جديد ضمن هذا النوع">
                       <Plus className="h-4 w-4" aria-hidden />
                       <span className="hidden sm:inline">إضافة مورد جديد</span>
                     </Button>
@@ -279,11 +284,6 @@ export default function ReceiveResources() {
                       <Badge tone="info">{resource.is_asset ? 'أصل فردي' : 'مورد استهلاكي'}</Badge>
                       <span className="text-xs text-gray-500">وحدة القياس: {resource.unit?.name_ar ?? 'غير محددة'}</span>
                     </div>
-                    {fields.length > 0 && (
-                      <p className="mt-2 text-xs text-gray-500">
-                        سيتم في الخطوة التالية إدخال {fields.length} حقل إضافي خاص بهذا النوع من الموارد.
-                      </p>
-                    )}
                   </div>
                 )}
               </>
@@ -315,12 +315,6 @@ export default function ReceiveResources() {
                     placeholder="تُحدد تلقائياً حسب المورد"
                   />
                 </div>
-                {balanceForResource && (
-                  <p className="text-xs text-gray-500">
-                    الرصيد الحالي لهذا المورد:{' '}
-                    <span className="font-semibold text-gray-700">{resource ? formatQuantity(0, selectedUnit?.name_ar) : ''}</span> — سيُضاف إليه الكمية الواردة عند التأكيد.
-                  </p>
-                )}
               </>
             )}
 
@@ -346,35 +340,6 @@ export default function ReceiveResources() {
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-800">الحقول الإضافية حسب نوع المورد</h3>
-                  {fields.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400">
-                      لا توجد حقول إضافية معرّفة لهذا المورد.
-                    </p>
-                  ) : (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {fields.map((f) => (
-                        <Input
-                          key={f.id}
-                          label={f.field_name_ar + (f.is_required ? ' *' : '')}
-                          name={f.field_name}
-                          value={customValues[f.id] ?? ''}
-                          onChange={(e) => setCustomValues((p) => ({ ...p, [f.id]: e.target.value }))}
-                          disabled={submitting}
-                          error={f.is_required && !customValues[f.id] ? 'هذا الحقل مطلوب' : null}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  {requiredFieldsMissing && (
-                    <p className="flex items-center gap-1.5 text-xs text-[#6b1f2a]">
-                      <CircleAlert className="h-3.5 w-3.5" aria-hidden />
-                      أكمل الحقول المطلوبة قبل المتابعة.
-                    </p>
-                  )}
-                </div>
-
                 <Input
                   label="ملاحظات (اختياري)"
                   name="notes"
@@ -383,39 +348,6 @@ export default function ReceiveResources() {
                   onChange={(e) => setNotes(e.target.value)}
                   disabled={submitting}
                 />
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <div className="rounded-lg border border-[#c9dcd5] bg-[#f4f7f5] p-4">
-                  <h3 className="mb-3 text-sm font-semibold text-[#054239]">مراجعة العملية قبل التأكيد</h3>
-                  <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                    <ReviewRow label="نوع المورد" value={categories.find((c) => c.id === categoryId)?.name_ar} />
-                    <ReviewRow label="اسم المورد" value={resource?.name_ar} />
-                    <ReviewRow
-                      label="الكمية"
-                      value={formatQuantity(Number.isFinite(parsedQuantity) ? parsedQuantity : 0, selectedUnit?.name_ar)}
-                    />
-                    <ReviewRow label="الجهة الموردة" value={supplierName || 'غير محددة'} />
-                    <ReviewRow label="رقم المستند" value={documentNumber || 'غير محدد'} />
-                  </dl>
-                  {fields.length > 0 && (
-                    <div className="mt-3 border-t border-[#c9dcd5] pt-3">
-                      <p className="mb-1.5 text-xs font-semibold text-gray-600">الحقول الإضافية</p>
-                      <dl className="grid gap-1 text-xs sm:grid-cols-2">
-                        {fields.map((f) => (
-                          <ReviewRow key={f.id} label={f.field_name_ar} value={customValues[f.id] || '—'} />
-                        ))}
-                      </dl>
-                    </div>
-                  )}
-                  {notes && (
-                    <p className="mt-3 border-t border-[#c9dcd5] pt-3 text-xs text-gray-600">
-                      <span className="font-semibold">ملاحظات:</span> {notes}
-                    </p>
-                  )}
-                </div>
               </>
             )}
 
@@ -457,41 +389,6 @@ export default function ReceiveResources() {
           onSave={saveNewResourceInline}
         />
       )}
-    </div>
-  )
-}
-
-function Stepper({ steps, current }: { steps: { label: string; done: boolean }[]; current: number }) {
-  return (
-    <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="خطوات العملية">
-      {steps.map((s, i) => (
-        <li key={i} className="flex items-center gap-2">
-          <span
-            className={[
-              'flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold',
-              i < current || s.done
-                ? 'border-[#428177] bg-[#428177] text-white'
-                : i === current
-                ? 'border-[#428177] bg-white text-[#054239]'
-                : 'border-gray-300 bg-white text-gray-400',
-            ].join(' ')}
-            aria-hidden
-          >
-            {i < current || s.done ? '✓' : i + 1}
-          </span>
-          <span className={i === current ? 'font-semibold text-[#054239]' : 'text-gray-500'}>{s.label}</span>
-          {i < steps.length - 1 && <span className="mx-1 h-px w-5 bg-gray-300" aria-hidden />}
-        </li>
-      ))}
-    </ol>
-  )
-}
-
-function ReviewRow({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-dashed border-gray-200 pb-1 last:border-0">
-      <dt className="text-xs text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-800">{value || '—'}</dd>
     </div>
   )
 }
@@ -546,7 +443,7 @@ function SuccessPanel({
             <Printer className="h-4 w-4" aria-hidden />
             طباعة مستند الاستلام
           </Button>
-          <Button onClick={onNew} variant="primary">
+          <Button onClick={onNew}>
             <Plus className="h-4 w-4" aria-hidden />
             عملية استلام جديدة
           </Button>
@@ -569,7 +466,7 @@ function NewResourceModal({
   units: UnitOfMeasure[]
   saving: boolean
   onCancel: () => void
-  onSave: (name: string, unitId: string) => void
+  onSave: (name: string, unitId: string) => Promise<void> | void
 }) {
   const [name, setName] = useState('')
   const [unitId, setUnitId] = useState(units[0]?.id ?? '')
@@ -588,33 +485,16 @@ function NewResourceModal({
         <h2 className="mb-1 text-sm font-bold text-gray-900">إضافة مورد جديد</h2>
         <p className="mb-4 text-xs text-gray-500">سيُضاف المورد إلى النوع المحدد وسيظهر فوراً في القوائم.</p>
         <div className="space-y-3">
-          <Input
-            label="اسم المورد"
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={error}
-            placeholder="مثال: مكيف سبليت"
-            disabled={saving}
-          />
-          <Select
-            label="وحدة القياس"
-            placeholder="اختر الوحدة"
-            options={units.map((u) => ({ value: u.id, label: u.name_ar }))}
-            value={unitId}
-            onChange={(e) => setUnitId(e.target.value)}
-            disabled={saving}
-          />
+          <Input label="اسم المورد" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="مثال: براد، غسالة، مكيف" disabled={saving} />
+          <Select label="وحدة القياس" placeholder="اختر الوحدة" options={units.map((u) => ({ value: u.id, label: u.name_ar }))} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
         </div>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onCancel} disabled={saving}>
-            إلغاء
-          </Button>
-          <Button onClick={submit} loading={saving}>
-            حفظ المورد
-          </Button>
+          <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
+          <Button onClick={submit} loading={saving}>حفظ المورد</Button>
         </div>
       </div>
     </div>
   )
 }
+
+export default ReceiveResources

@@ -93,6 +93,8 @@ export interface ResourceCustomFieldValue {
   created_at: string
 }
 
+export type CustomValues = Record<string, string>
+
 export interface Branch {
   id: string
   name_ar: string

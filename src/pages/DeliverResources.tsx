@@ -2,22 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Check, ChevronLeft, CircleAlert, Package, Plus, Printer, UserRound } from 'lucide-react'
 import { api } from '../services/api'
-import type { Branch, Department, Person, Resource, ResourceCategory, ResourceCustomField } from '../types'
-import { Alert, Badge, Button, Card, CardHeader, Input, Modal, PageHeader, Select, Spinner } from '../components/ui'
+import type { Branch, Person, Resource, ResourceCategory, ResourceCustomField, CustomValues } from '../types'
+import { Alert, Badge, Button, Card, CardHeader, Input, PageHeader, Select, Spinner } from '../components/ui'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { formatNumber, formatQuantity } from '../utils'
 import { printDocument } from '../utils/print'
 
 type Step = 0 | 1 | 2 | 3
 
-export default function DeliverResources() {
+function DeliverResources() {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>(0)
   const [categories, setCategories] = useState<ResourceCategory[]>([])
   const [resources, setResources] = useState<Resource[]>([])
   const [fields, setFields] = useState<ResourceCustomField[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
-  const [departments, setDepartments] = useState<Department[]>([])
   const [people, setPeople] = useState<Person[]>([])
 
   const [categoryId, setCategoryId] = useState('')
@@ -29,7 +28,6 @@ export default function DeliverResources() {
   const [recipientName, setRecipientName] = useState('')
   const [recipientPersonId, setRecipientPersonId] = useState('')
   const [documentNumber, setDocumentNumber] = useState('')
-  const [reason, setReason] = useState('')
   const [notes, setNotes] = useState('')
   const [customValues, setCustomValues] = useState<CustomValues>({})
   const [available, setAvailable] = useState<number | null>(null)
@@ -45,15 +43,13 @@ export default function DeliverResources() {
 
   useEffect(() => {
     const load = async () => {
-      const [cats, brs, depts, ppl] = await Promise.all([
+      const [cats, brs, ppl] = await Promise.all([
         api.categories.list(),
         api.branches.list(),
-        api.departments.list(),
         api.people.list(),
       ])
       setCategories((cats.data ?? []).filter((c) => c.is_active))
       setBranches(brs.data ?? [])
-      setDepartments(depts.data ?? [])
       setPeople(ppl.data ?? [])
     }
     load()
@@ -113,10 +109,9 @@ export default function DeliverResources() {
 
   const steps = useMemo(
     () => [
-      { label: 'نوع المورد واسمه', done: stepOneValid },
-      { label: 'الكمية والجهة المستلمة', done: stepTwoValid },
-      { label: 'بيانات الشخص المستلم', done: stepThreeValid },
-      { label: 'المراجعة والتأكيد', done: false },
+      { label: 'النوع و الاسم', done: stepOneValid },
+      { label: 'الكمية و الجهة', done: stepTwoValid },
+      { label: 'المستلم', done: stepThreeValid },
     ],
     [stepOneValid, stepTwoValid, stepThreeValid]
   )
@@ -132,7 +127,6 @@ export default function DeliverResources() {
     setRecipientName('')
     setRecipientPersonId('')
     setDocumentNumber('')
-    setReason('')
     setNotes('')
     setCustomValues({})
     setFields([])
@@ -164,7 +158,6 @@ export default function DeliverResources() {
       branch_id: branchId || undefined,
       department_id: departmentId || undefined,
       document_number: documentNumber || undefined,
-      reason: reason || undefined,
       notes: notes || undefined,
       custom_fields: flat,
     })
@@ -309,14 +302,14 @@ export default function DeliverResources() {
                 ? 'الخطوة 1: اختيار نوع المورد واسمه'
                 : step === 1
                 ? 'الخطوة 2: الكمية والجهة المستلمة'
-                : 'الخطوة 3: بيانات المستلم والمستند'
+                : 'الخطوة 3: المستلم'
             }
             description={
               step === 0
                 ? 'اختر التصنيف ثم اسم المورد المطلوب تسليمه'
                 : step === 1
                 ? 'حدد الكمية والفرع أو الجهة المستلمة'
-                : 'اسم الشخص المستلم ومستند التسليم'
+                : 'اسم الشخص المستلم (مطلوب)'
             }
           />
 
@@ -402,24 +395,14 @@ export default function DeliverResources() {
                     disabled={submitting}
                   />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Select
-                    label="القسم / الشعبة"
-                    placeholder="اختر القسم (إن وجد)"
-                    options={departments.filter((d) => !branchId || d.branch_id === branchId).map((d) => ({ value: d.id, label: d.name_ar }))}
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    disabled={submitting}
-                  />
-                  <Input
-                    label="رقم مستند التسليم / العهدة"
-                    name="documentNumber"
-                    placeholder="مثال: عهدة رقم 88"
-                    value={documentNumber}
-                    onChange={(e) => setDocumentNumber(e.target.value)}
-                    disabled={submitting}
-                  />
-                </div>
+                <Input
+                  label="رقم مستند التسليم / العهدة"
+                  name="documentNumber"
+                  placeholder="مثال: عهدة رقم 88"
+                  value={documentNumber}
+                  onChange={(e) => setDocumentNumber(e.target.value)}
+                  disabled={submitting}
+                />
 
                 {quantityValid && !exceedsBalance && remainingAfter !== null && (
                   <div className="flex items-center gap-2 rounded-lg border border-[#c9dcd5] bg-[#f4f7f5] px-3 py-2 text-xs text-[#054239]">
@@ -454,7 +437,7 @@ export default function DeliverResources() {
                     </Button>
                   </div>
                   <Input
-                    label="اسم الشخص المستلم (كتابة)"
+                    label="اسم الشخص المستلم"
                     name="recipientName"
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
@@ -464,37 +447,6 @@ export default function DeliverResources() {
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-800">الحقول الإضافية حسب نوع المورد</h3>
-                  {fields.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400">
-                      لا توجد حقول إضافية معرّفة لهذا المورد.
-                    </p>
-                  ) : (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {fields.map((f) => (
-                        <Input
-                          key={f.id}
-                          label={f.field_name_ar + (f.is_required ? ' *' : '')}
-                          name={f.field_name}
-                          value={customValues[f.id] ?? ''}
-                          onChange={(e) => setCustomValues((p) => ({ ...p, [f.id]: e.target.value }))}
-                          disabled={submitting}
-                          error={f.is_required && !customValues[f.id] ? 'هذا الحقل مطلوب' : null}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Input
-                  label="سبب التسليم / نوعه (اختياري)"
-                  name="reason"
-                  placeholder="مثال: صرف عهدة، طلب صيانة"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  disabled={submitting}
-                />
                 <Input
                   label="ملاحظات (اختياري)"
                   name="notes"
@@ -504,34 +456,6 @@ export default function DeliverResources() {
                   disabled={submitting}
                 />
               </>
-            )}
-
-            {step === 3 && (
-              <div className="rounded-lg border border-[#c9dcd5] bg-[#f4f7f5] p-4">
-                <h3 className="mb-3 text-sm font-semibold text-[#054239]">مراجعة عملية التسليم قبل التأكيد</h3>
-                <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                  <ReviewRow label="نوع المورد" value={categories.find((c) => c.id === categoryId)?.name_ar} />
-                  <ReviewRow label="اسم المورد" value={resource?.name_ar} />
-                  <ReviewRow label="الكمية" value={formatQuantity(Number.isFinite(parsedQuantity) ? parsedQuantity : 0, resource?.unit?.name_ar)} />
-                  <ReviewRow label="الشخص المستلم" value={recipientName} />
-                  <ReviewRow label="الفرع / الجهة" value={branches.find((b) => b.id === branchId)?.name_ar ?? 'غير محدد'} />
-                  <ReviewRow label="رقم المستند" value={documentNumber || 'غير محدد'} />
-                  <ReviewRow
-                    label="الرصيد بعد العملية"
-                    value={remainingAfter !== null ? `${formatNumber(remainingAfter)} ${resource?.unit?.name_ar ?? ''}` : '—'}
-                  />
-                </dl>
-                {fields.length > 0 && (
-                  <div className="mt-3 border-t border-[#c9dcd5] pt-3">
-                    <p className="mb-1.5 text-xs font-semibold text-gray-600">الحقول الإضافية</p>
-                    <dl className="grid gap-1 text-xs sm:grid-cols-2">
-                      {fields.map((f) => (
-                        <ReviewRow key={f.id} label={f.field_name_ar} value={customValues[f.id] || '—'} />
-                      ))}
-                    </dl>
-                  </div>
-                )}
-              </div>
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-4">
@@ -578,17 +502,6 @@ export default function DeliverResources() {
   )
 }
 
-type CustomValues = { [field_id: string]: string }
-
-function ReviewRow({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-dashed border-gray-200 pb-1 last:border-0">
-      <dt className="text-xs text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-800">{value || '—'}</dd>
-    </div>
-  )
-}
-
 function NewResourceModal({ onCancel, onSave }: { onCancel: () => void; onSave: (name: string, unitId: string) => Promise<void> | void }) {
   const [name, setName] = useState('')
   const [unitId, setUnitId] = useState('')
@@ -614,16 +527,21 @@ function NewResourceModal({ onCancel, onSave }: { onCancel: () => void; onSave: 
   }
 
   return (
-    <Modal open title="إضافة مورد جديد" onClose={onCancel}>
-      <div className="space-y-3">
-        <Input label="اسم المورد" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="مثال: جعبة قتالية" disabled={saving} />
-        <Select label="وحدة القياس" placeholder="اختر الوحدة" options={units} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="إضافة مورد جديد">
+      <div className="absolute inset-0" onClick={onCancel} aria-hidden />
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
+        <h2 className="mb-1 text-sm font-bold text-gray-900">إضافة مورد جديد</h2>
+        <p className="mb-4 text-xs text-gray-500">سيُضاف المورد إلى النوع المحدد وسيظهر فوراً في القوائم.</p>
+        <div className="space-y-3">
+          <Input label="اسم المورد" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="مثال: جعبة قتالية" disabled={saving} />
+          <Select label="وحدة القياس" placeholder="اختر الوحدة" options={units} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
+          <Button onClick={submit} loading={saving}>حفظ المورد</Button>
+        </div>
       </div>
-      <div className="mt-5 flex justify-end gap-2">
-        <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
-        <Button onClick={submit} loading={saving}>حفظ المورد</Button>
-      </div>
-    </Modal>
+    </div>
   )
 }
 
@@ -639,16 +557,23 @@ function NewPersonModal({ onCancel, onSave, saving }: { onCancel: () => void; on
   }
 
   return (
-    <Modal open title="إضافة شخص مستلم جديد" onClose={onCancel}>
-      <div className="space-y-3">
-        <Input label="الاسم الرباعي" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} disabled={saving} />
-        <Input label="رقم الهاتف (اختياري)" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" disabled={saving} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="إضافة شخص مستلم جديد">
+      <div className="absolute inset-0" onClick={onCancel} aria-hidden />
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
+        <h2 className="mb-1 text-sm font-bold text-gray-900">إضافة شخص مستلم جديد</h2>
+        <p className="mb-4 text-xs text-gray-500">سيتم حفظ الشخص في قاعدة البيانات وسيبقى متاحاً في كل عمليات التسليم القادمة.</p>
+        <div className="space-y-3">
+          <Input label="الاسم الرباعي" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} disabled={saving} />
+          <Input label="رقم الهاتف (اختياري)" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" disabled={saving} />
+        </div>
+        <p className="mt-3 text-xs text-gray-500">سيتم حفظ الشخص في قاعدة البيانات وسيبقى متاحاً في كل عمليات التسليم القادمة.</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
+          <Button onClick={submit} loading={saving}>حفظ الشخص</Button>
+        </div>
       </div>
-      <p className="mt-3 text-xs text-gray-500">سيتم حفظ الشخص في قاعدة البيانات وسيبقى متاحاً في كل عمليات التسليم القادمة.</p>
-      <div className="mt-5 flex justify-end gap-2">
-        <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
-        <Button onClick={submit} loading={saving}>حفظ الشخص</Button>
-      </div>
-    </Modal>
+    </div>
   )
 }
+
+export default DeliverResources
