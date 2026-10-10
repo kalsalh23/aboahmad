@@ -4,7 +4,7 @@ import { Loader2, X } from 'lucide-react'
 import { cn } from '../utils'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
-type Size = 'sm' | 'md' | 'lg'
+type Size = 'sm' | 'md' | 'lg' | 'xl'
 
 const variants: Record<Variant, string> = {
   primary: 'bg-[#428177] text-white hover:bg-[#054239] active:bg-[#002623] border border-[#3a756c]',
@@ -13,10 +13,18 @@ const variants: Record<Variant, string> = {
   ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 border border-transparent',
 }
 
+const inputSizes: Record<Size, string> = {
+  sm: 'h-9 px-3 text-sm',
+  md: 'h-11 px-3.5 text-base',
+  lg: 'h-14 px-4 text-lg',
+  xl: 'h-16 px-4 text-xl',
+}
+
 const sizes: Record<Size, string> = {
   sm: 'h-9 px-3 text-sm gap-1.5',
   md: 'h-10 px-4 text-sm gap-2',
   lg: 'h-12 px-6 text-base gap-2.5',
+  xl: 'h-14 px-7 text-lg gap-3',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -57,15 +65,16 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string
   error?: string | null
   icon?: ReactNode
+  inputSize?: Size
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, hint, error, icon, className, id, ...props }, ref) => {
+  ({ label, hint, error, icon, className, id, inputSize = 'md', ...props }, ref) => {
     const inputId = id ?? props.name ?? label
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-gray-700">
+          <label htmlFor={inputId} className="mb-1.5 block text-sm font-semibold text-gray-800">
             {label}
           </label>
         )}
@@ -87,18 +96,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               error
                 ? 'border-[#6b1f2a] focus:border-[#6b1f2a] focus:ring-[#6b1f2a]/20'
                 : 'border-gray-300 focus:border-[#428177] focus:ring-[#428177]/20',
+              inputSizes[inputSize],
               className
             )}
             {...props}
           />
         </div>
         {error && (
-          <p id={`${inputId}-error`} role="alert" className="mt-1 flex items-center gap-1 text-xs font-medium text-[#6b1f2a]">
+          <p id={`${inputId}-error`} role="alert" className="mt-1.5 flex items-center gap-1 text-sm font-medium text-[#6b1f2a]">
             <span aria-hidden>⚠</span> {error}
           </p>
         )}
         {!error && hint && (
-          <p id={`${inputId}-hint`} className="mt-1 text-xs text-gray-500">
+          <p id={`${inputId}-hint`} className="mt-1.5 text-xs text-gray-500">
             {hint}
           </p>
         )}

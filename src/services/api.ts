@@ -59,42 +59,41 @@ async function run<T>(fn: () => Query): Promise<Result<T>> {
 export const api = {
   auth: {
     async login(identifier: string, password: string): Promise<Result<{ user: any; profile: Profile }>> {
-      let profile: Profile | null = null
-      const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
+      const raw = identifier.trim()
+      let emailToUse = raw
 
-      if (!looksLikeEmail) {
-        const res = await run<Profile>(() =>
-          supabase
-            .from(TABLE.profiles)
-            .select('*')
-            .or(`username.eq.${identifier},phone.eq.${identifier}`)
-            .eq('is_active', true)
-            .maybeSingle()
-        )
-        if (res.error) return { data: null, error: res.error }
+      // إذا لم يكن المدخل بريداً إلكترونياً، نُحوّله إلى البريد المرتبط برقم الهاتف أو اسم المستخدم
+      // عبر دالة آمنة في قاعدة البيانات (تحترم RLS ولا تكشف بيانات إضافية).
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
+        const res = await run<string>(async () => {
+          const { data, error } = await supabase.rpc('resolve_login_email', { p_identifier: raw })
+          return { data: data ?? null, error }
+        })
+        if (res.error) return { data: null, error: 'تعذر التحقق من بيانات الدخول' }
         if (!res.data) {
-          return { data: null, error: 'اسم المستخدم أو رقم الهاتف غير مسجل في النظام' }
+          return { data: null, error: 'رقم الهاتف أو اسم المستخدم غير مسجل في النظام' }
         }
-        profile = res.data
+        emailToUse = res.data
       }
 
-      const emailToUse = profile?.email ?? identifier
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password,
       })
 
       if (error || !data.user) {
-        return { data: null, error: error ? getErrorMessage(error) : 'بيانات الدخول غير صحيحة' }
+        return { data: null, error: 'بيانات الدخول غير صحيحة، تأكد من رقم الهاتف وكلمة المرور' }
       }
 
-      if (!profile) {
-        const res = await run<Profile>(() =>
-          supabase.from(TABLE.profiles).select('*').eq('id', data.user.id).maybeSingle()
-        )
-        if (res.error) return { data: null, error: res.error }
-        profile = res.data
-      }
+      const profileRes = await run<Profile>(() =>
+        supabase
+          .from(TABLE.profiles)
+          .select('*, role:roles(*), branch:branches(*), department:departments(*)')
+          .eq('id', data.user.id)
+          .single()
+      )
+      if (profileRes.error) return { data: null, error: 'تعذر تحميل بيانات الحساب' }
+      const profile = profileRes.data
 
       if (!profile) return { data: null, error: 'الحساب غير مرتبط بملف موظف' }
       if (!profile.is_active) {

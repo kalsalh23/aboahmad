@@ -1,10 +1,21 @@
+const AR = 'ar-u-ca-gregory-nu-latn'
+
 export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('ar-SA').format(num)
+  return new Intl.NumberFormat(AR).format(num)
 }
 
 export const formatDate = (date: string | Date): string => {
   const d = new Date(date)
-  return new Intl.DateTimeFormat('ar-SA', {
+  return new Intl.DateTimeFormat(AR, {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).format(d)
+}
+
+export const formatDateLong = (date: string | Date): string => {
+  const d = new Date(date)
+  return new Intl.DateTimeFormat(AR, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -13,17 +24,27 @@ export const formatDate = (date: string | Date): string => {
 
 export const formatDateTime = (date: string | Date): string => {
   const d = new Date(date)
-  return new Intl.DateTimeFormat('ar-SA', {
+  return new Intl.DateTimeFormat(AR, {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
+  }).format(d)
+}
+
+export const formatTime = (date: string | Date): string => {
+  const d = new Date(date)
+  return new Intl.DateTimeFormat(AR, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
   }).format(d)
 }
 
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('ar-SA', {
+  return new Intl.NumberFormat(AR, {
     style: 'decimal',
     minimumFractionDigits: 0,
   }).format(amount)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { ArrowDownToLine, ArrowUpFromLine, Boxes, BarChart3, Settings, LogOut, User as UserIcon, Calendar, Warehouse } from 'lucide-react'
-import { BRAND, COLORS } from '../config/brand'
+import { BRAND } from '../config/brand'
 import { useAuth, PERMISSION_LABELS } from '../context/AuthContext'
 import { formatDate } from '../utils'
 import { Button } from './ui'
@@ -32,9 +32,13 @@ export default function Layout({ children }: { children?: ReactNode } = {}) {
       <header className="sticky top-0 z-40 border-b border-[#ded9c7] bg-white">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-4">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: COLORS.primary }} aria-hidden>
-              <Warehouse className="h-4 w-4 text-white" />
-            </span>
+            <img
+              src={BRAND.logoPath}
+              alt={BRAND.logoAlt ?? ''}
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-lg border border-[#ded9c7] bg-white object-contain p-0.5"
+            />
             <span className="text-sm font-bold tracking-tight text-[#002623]">{BRAND.appNameShort}</span>
           </div>
 

@@ -23,6 +23,34 @@ begin
   return bal;
 end $$;
 
+-- دالة آمنة لتحديد البريد من رقم الهاتف أو اسم المستخدم عند تسجيل الدخول.
+-- لا تكشف إلا عنوان البريد المرتبط بالمعرّف، ولا تعرض أي بيانات أخرى.
+create or replace function public.resolve_login_email(p_identifier text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_email text;
+begin
+  if p_identifier is null or btrim(p_identifier) = '' then
+    return null;
+  end if;
+
+  select p.email into v_email
+  from public.profiles p
+  where p.is_active = true
+    and (p.username = btrim(p_identifier) or p.phone = btrim(p_identifier) or p.email = btrim(p_identifier))
+  order by (p.username = btrim(p_identifier)) desc nulls last, (p.phone = btrim(p_identifier)) desc nulls last
+  limit 1;
+
+  return v_email;
+end $$;
+
+revoke all on function public.resolve_login_email(text) from public;
+grant execute on function public.resolve_login_email(text) to anon, authenticated;
+
+
 create or replace function public.log_audit(
   p_action text,
   p_entity_type text,
