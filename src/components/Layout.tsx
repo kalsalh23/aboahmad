@@ -17,7 +17,7 @@ const NAV = [
 ]
 
 export default function Layout({ children }: { children?: ReactNode } = {}) {
-  const { profile, signOut, can } = useAuth()
+  const { signOut, can } = useAuth()
   const navigate = useNavigate()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -88,10 +88,10 @@ export default function Layout({ children }: { children?: ReactNode } = {}) {
                 onClick={() => setSettingsOpen((v) => !v)}
                 aria-expanded={settingsOpen}
                 aria-haspopup="true"
+                aria-label="القائمة والإعدادات"
                 className="flex items-center gap-2 rounded-lg border border-gray-300 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
               >
                 <UserIcon className="h-3.5 w-3.5" aria-hidden />
-                <span className="max-w-[120px] truncate">{profile?.full_name_ar ?? 'المستخدم'}</span>
                 <span aria-hidden className="text-[10px] text-gray-400">▾</span>
               </button>
               {settingsOpen && (

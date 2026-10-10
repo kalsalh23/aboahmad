@@ -4,6 +4,7 @@ import { api } from '../services/api'
 import { MOVEMENT_TYPE_LABELS } from '../constants'
 import { Alert, Button, Card, CardHeader, EmptyState, Input, PageHeader, Select, Spinner } from '../components/ui'
 import { formatDate, formatDateTime, formatNumber } from '../utils'
+import { cn } from '../utils'
 import { exportTableToPdf, exportToExcel } from '../utils/excel'
 import { printElement } from '../utils/print'
 
@@ -49,6 +50,7 @@ export default function Reports() {
   const [error, setError] = useState<string | null>(null)
   const [headers, setHeaders] = useState<string[]>([])
   const [rows, setRows] = useState<(string | number)[][]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const current = REPORTS.find((r) => r.key === reportKey)!
 
@@ -198,9 +200,18 @@ export default function Reports() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="التقارير" description="استخراج التقارير الرسمية من بيانات النظام مع الطباعة والتصدير" />
+      <PageHeader
+        title="التقارير"
+        description="استخراج التقارير الرسمية من بيانات النظام مع الطباعة والتصدير"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => setFiltersOpen((v) => !v)} className="lg:hidden">
+            <Filter className="h-4 w-4" aria-hidden />
+            {filtersOpen ? 'إخفاء الفلاتر' : 'الفلاتر'}
+          </Button>
+        }
+      />
 
-      <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
+      <div className={cn('space-y-4', !filtersOpen && 'hidden lg:block')}>
         <Card className="h-fit">
           <CardHeader title="خيارات التقرير" description="اختر نوع التقرير والفترة الزمنية" />
           <div className="space-y-3 p-4">
@@ -245,37 +256,40 @@ export default function Reports() {
             title={current.title}
             description={`${current.description} — عدد السجلات: ${formatNumber(rows.length)}`}
             action={
-              <div className="flex flex-wrap gap-2">
+              <div className="grid w-full grid-cols-3 gap-1.5 sm:flex sm:w-auto sm:gap-2">
                 <Button
                   size="sm"
                   variant="secondary"
+                  className="justify-center px-2 sm:px-3"
                   onClick={() => exportToExcel(current.title, headers, rows)}
                   disabled={!rows.length}
                 >
                   <Download className="h-3.5 w-3.5" aria-hidden />
-                  Excel
+                  <span className="text-[11px] sm:text-sm">Excel</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="secondary"
+                  className="justify-center px-2 sm:px-3"
                   onClick={() => exportTableToPdf(current.title, `الفترة: ${from} إلى ${to}`, headers, rows)}
                   disabled={!rows.length}
                 >
                   <FileText className="h-3.5 w-3.5" aria-hidden />
-                  PDF
+                  <span className="text-[11px] sm:text-sm">PDF</span>
                 </Button>
                 <Button
                   size="sm"
+                  className="justify-center px-2 sm:px-3"
                   onClick={() => printElement(`report-${reportKey}`, current.title)}
                   disabled={!rows.length}
                 >
                   <Printer className="h-3.5 w-3.5" aria-hidden />
-                  طباعة
+                  <span className="text-[11px] sm:text-sm">طباعة</span>
                 </Button>
               </div>
             }
           />
-          <div id={`report-${reportKey}`} className="p-4">
+          <div id={`report-${reportKey}`} className="p-3 sm:p-4">
             {loading ? (
               <Spinner label="جارٍ استخراج التقرير..." />
             ) : rows.length === 0 ? (
@@ -288,42 +302,76 @@ export default function Reports() {
                     الفترة: {from} — {to}
                   </p>
                 </div>
-                <table className="w-full min-w-[720px] border-collapse text-right text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-[#f7f6f1]">
-                      {headers.map((h, i) => (
-                        <th key={i} className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-gray-600">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row, ri) => (
-                      <tr key={ri} className="border-b border-gray-100 last:border-0">
-                        {row.map((cell, ci) => (
-                          <td key={ci} className="px-3 py-2.5 text-gray-800">
-                            {typeof cell === 'number' ? formatNumber(cell) : cell || '—'}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                  {totals && totals.length > 0 && (
-                    <tfoot>
-                      <tr className="border-t-2 border-gray-300 bg-[#f7f6f1] font-semibold">
-                        {headers.map((_, i) => {
-                          const t = totals.find((x) => x.index === i)
+                {/* Mobile: card list. Desktop: table. */}
+                <ul className="divide-y divide-gray-100 sm:hidden">
+                  {rows.map((row, ri) => (
+                    <li key={ri} className="px-1 py-2.5">
+                      <dl className="space-y-1">
+                        {headers.map((h, ci) => {
+                          const cell = row[ci]
                           return (
-                            <td key={i} className="px-3 py-2.5 text-gray-900">
-                              {t ? formatNumber(t.value) : i === 0 ? 'الإجمالي' : ''}
-                            </td>
+                            <div key={ci} className="flex items-start justify-between gap-3">
+                              <dt className="shrink-0 text-[11px] text-gray-500">{h}</dt>
+                              <dd className="text-end text-xs font-medium text-gray-800">
+                                {typeof cell === 'number' ? formatNumber(cell) : cell || '—'}
+                              </dd>
+                            </div>
                           )
                         })}
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="hidden sm:block">
+                  <div className="mb-3 hidden print:block">
+                    <h2 className="text-lg font-bold">{current.title}</h2>
+                    <p className="text-xs text-gray-500">
+                      الفترة: {from} — {to}
+                    </p>
+                  </div>
+                  <table className="w-full min-w-[720px] border-collapse text-right text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-[#f7f6f1]">
+                        {headers.map((h, i) => (
+                          <th key={i} className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-gray-600">
+                            {h}
+                          </th>
+                        ))}
                       </tr>
-                    </tfoot>
-                  )}
-                </table>
+                    </thead>
+                    <tbody>
+                      {rows.map((row, ri) => (
+                        <tr key={ri} className="border-b border-gray-100 last:border-0">
+                          {row.map((cell, ci) => (
+                            <td key={ci} className="px-3 py-2.5 text-gray-800">
+                              {typeof cell === 'number' ? formatNumber(cell) : cell || '—'}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                    {totals && totals.length > 0 && (
+                      <tfoot>
+                        <tr className="border-t-2 border-gray-300 bg-[#f7f6f1] font-semibold">
+                          {headers.map((_, i) => {
+                            const t = totals.find((x) => x.index === i)
+                            return (
+                              <td key={i} className="px-3 py-2.5 text-gray-900">
+                                {t ? formatNumber(t.value) : i === 0 ? 'الإجمالي' : ''}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+                {totals && totals.length > 0 && (
+                  <p className="mt-2 text-[11px] text-gray-500 sm:hidden">
+                    الإجماليات تظهر في النسخة المكتبية وفي الملفات المصدّرة
+                  </p>
+                )}
               </div>
             )}
           </div>
