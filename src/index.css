@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: #428177;
+    --primary-dark: #054239;
+    --primary-darker: #002623;
+    --primary-black: #002623;
+    --cream: #edebe0;
+    --gold-light: #b9a779;
+    --gold: #988561;
+    --gold-dark: #6b1f2a;
+    --red-light: #4a151e;
+    --red: #260f14;
+    --red-darker: #260f14;
+    --white: #ffffff;
+    --gray-100: #f5f5f4;
+    --gray-200: #e5e4e7;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b6375;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --success: #054239;
+    --warning: #988561;
+    --error: #6b1f2a;
+    --info: #428177;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'IBM Plex Sans Arabic', 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+    direction: rtl;
+    text-align: right;
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input, select, textarea, button {
+    font-family: inherit;
+    font-feature-settings: 'ss01';
+  }
+
+  html {
+    direction: rtl;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#428177] hover:bg-[#054239] text-white font-medium px-4 py-2.5 rounded-lg 
+           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#428177] 
+           focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-[#edebe0] hover:bg-[#b9a779] text-[#002623] font-medium px-4 py-2.5 rounded-lg 
+           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#b9a777] 
+           focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply bg-[#6b1f2a] hover:bg-[#4a151e] text-white font-medium px-4 py-2.5 rounded-lg 
+           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#6b1f2a] 
+           focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+           focus:ring-[#428177] focus:border-transparent transition-colors;
+  }
+
+  .input-error {
+    @apply border-red-500 focus:ring-red-500;
+  }
+
+  .table-header {
+    @apply px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider bg-gray-50;
+  }
+
+  .table-cell {
+    @apply px-4 py-3 text-right text-sm text-gray-900 border-b border-gray-200;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-slide-in { animation: slideInUp 0.4s ease-out; }
+.animate-spin { animation: spin 1s linear infinite; }
