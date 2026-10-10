@@ -2,6 +2,16 @@
 
 نظام إدارة مستودع حكومي متكامل (استلام / تسليم / مخزون / تقارير) مبني على **React + TypeScript + Vite + Tailwind CSS** مع **Supabase** لقاعدة البيانات والمصادقة والصلاحيات (PostgreSQL + Auth + RLS).
 
+## الروابط
+
+| الخدمة | الرابط |
+|---|---|
+| التطبيق المنشور | https://warehouse-management-brown.vercel.app |
+| المستودع (GitHub) | https://github.com/kalsalh23/aboahmad |
+| قاعدة البيانات | https://mlqhupcwhveqddyagvuz.supabase.co |
+
+> بيانات حساب المدير تُسلَّم بشكل منفصل وآمن، ويجب تغيير كلمة المرور بعد أول دخول.
+
 ## المزايا الرئيسية
 
 - **واجهة عربية كاملة (RTL)** بتصميم احترافي هادئ مناسب للأنظمة الإدارية الحكومية.
