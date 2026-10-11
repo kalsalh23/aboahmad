@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Download, FileText, Filter, Printer } from 'lucide-react'
 import { api } from '../services/api'
 import { MOVEMENT_TYPE_LABELS } from '../constants'
@@ -91,8 +91,8 @@ export default function Reports() {
         setRows(
           data.map((m) =>
             reportKey === 'received'
-              ? [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.supplier_name ?? m.from_branch?.name_ar ?? '', m.document_number ?? '', m.performer?.full_name_ar ?? '']
-              : [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.recipient_name ?? '', m.to_branch_name ?? m.to_branch?.name_ar ?? '', m.document_number ?? '', m.performer?.full_name_ar ?? '']
+              ? [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.supplier_name ?? m.from_branch?.name_ar ?? '', m.document_number ?? '', m.performed_by_name ?? m.performer?.full_name_ar ?? '']
+              : [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.recipient_name ?? '', m.to_branch_name ?? m.to_branch?.name_ar ?? '', m.document_number ?? '', m.performed_by_name ?? m.performer?.full_name_ar ?? '']
           )
         )
       } else if (reportKey === 'by_category' || reportKey === 'by_branch' || reportKey === 'by_person' || reportKey === 'by_performer') {
@@ -136,7 +136,7 @@ export default function Reports() {
         } else {
           const map = new Map<string, { count: number; receipt: number; delivery: number }>()
           data.forEach((m) => {
-            const key = m.performer?.full_name_ar ?? 'غير محدد'
+            const key = m.performed_by_name ?? m.performer?.full_name_ar ?? 'غير محدد'
             const cur = map.get(key) ?? { count: 0, receipt: 0, delivery: 0 }
             cur.count += 1
             if (m.movement_type === 'receipt') cur.receipt += m.quantity
@@ -162,7 +162,7 @@ export default function Reports() {
             m.quantity,
             m.recipient_name ?? m.supplier_name ?? m.to_branch?.name_ar ?? m.from_branch?.name_ar ?? '',
             m.movement_date ? formatDateTime(m.movement_date) : '',
-            m.performer?.full_name_ar ?? '',
+            m.performed_by_name ?? m.performer?.full_name_ar ?? '',
           ])
         )
       } else if (reportKey === 'inventory_audit') {

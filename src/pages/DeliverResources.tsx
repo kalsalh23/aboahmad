@@ -25,6 +25,7 @@ function DeliverResources() {
   const [branchName, setBranchName] = useState('')
   const [recipientName, setRecipientName] = useState('')
   const [recipientPersonId, setRecipientPersonId] = useState('')
+  const [performedByName, setPerformedByName] = useState('')
   const [documentNumber, setDocumentNumber] = useState('')
   const [notes, setNotes] = useState('')
   const [customValues, setCustomValues] = useState<CustomValues>({})
@@ -120,6 +121,7 @@ function DeliverResources() {
     setBranchName('')
     setRecipientName('')
     setRecipientPersonId('')
+    setPerformedByName('')
     setDocumentNumber('')
     setNotes('')
     setCustomValues({})
@@ -150,6 +152,7 @@ function DeliverResources() {
       recipient_name: recipientName.trim(),
       recipient_person_id: recipientPersonId || undefined,
       branch_name: branchName.trim() || undefined,
+      performed_by_name: performedByName.trim() || undefined,
       document_number: documentNumber || undefined,
       notes: notes || undefined,
       custom_fields: flat,
@@ -268,6 +271,7 @@ function DeliverResources() {
                     branchName: branchName.trim() || undefined,
                     documentRef: documentNumber,
                     notes,
+                    performerName: performedByName.trim() || undefined,
                     remainingBalance: doneResult.new_balance,
                     fields: fields.map((f) => ({ label: f.field_name_ar, value: customValues[f.id] ?? '' })),
                   })
@@ -437,18 +441,29 @@ function DeliverResources() {
                     onChange={(e) => setRecipientName(e.target.value)}
                     disabled={submitting}
                     error={!recipientName.trim() ? 'اسم المستلم مطلوب' : null}
-                    hint="يُسجّل في حقل منفصل عن الموظف المنفذ للتسليم"
+                    hint="يُسجّل في حقل منفصل عن الموظف المنفّذ للتسليم"
                   />
                 </div>
 
-                <Input
-                  label="ملاحظات (اختياري)"
-                  name="notes"
-                  placeholder="حالة المورد أو أي ملاحظات"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  disabled={submitting}
-                />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    label="الشخص الذي قام بالتسليم"
+                    name="performedByName"
+                    placeholder="اكتب اسم الشخص المنفّذ للتسليم"
+                    value={performedByName}
+                    onChange={(e) => setPerformedByName(e.target.value)}
+                    disabled={submitting}
+                    hint="يُسجَّل في حقل مستقل عن المستخدم الذي أدخل البيانات"
+                  />
+                  <Input
+                    label="ملاحظات (اختياري)"
+                    name="notes"
+                    placeholder="حالة المورد أو أي ملاحظات"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    disabled={submitting}
+                  />
+                </div>
               </>
             )}
 

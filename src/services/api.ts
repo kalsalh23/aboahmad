@@ -504,6 +504,7 @@ export const api = {
           p_reason: input.reason ?? null,
           p_notes: input.notes ?? null,
           p_custom_fields: input.custom_fields ?? {},
+          p_performed_by_name: input.performed_by_name ?? null,
           p_idempotency_key: idempotency_key,
         })
         if (error) return { data: null, error }
@@ -526,6 +527,7 @@ export const api = {
           p_reason: input.reason ?? null,
           p_notes: input.notes ?? null,
           p_custom_fields: input.custom_fields ?? {},
+          p_performed_by_name: input.performed_by_name ?? null,
           p_idempotency_key: idempotency_key,
         })
         if (error) return { data: null, error }
@@ -621,6 +623,7 @@ export interface ReceiveInput {
   supplier_name?: string
   reason?: string
   notes?: string
+  performed_by_name?: string
   custom_fields?: Record<string, string | number>
   idempotency_key?: string
 }
@@ -635,6 +638,7 @@ export interface DeliverInput {
   document_number?: string
   reason?: string
   notes?: string
+  performed_by_name?: string
   custom_fields?: Record<string, string | number>
   idempotency_key?: string
 }

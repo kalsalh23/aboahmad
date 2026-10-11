@@ -161,6 +161,7 @@ export interface StockMovement {
   reason?: string
   notes?: string
   performed_by: string
+  performed_by_name?: string
   approved_by?: string
   status: 'pending' | 'approved' | 'completed' | 'cancelled'
   movement_date: string

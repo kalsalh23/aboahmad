@@ -27,6 +27,7 @@ function ReceiveResources() {
   const [resource, setResource] = useState<Resource | null>(null)
   const [quantity, setQuantity] = useState('')
   const [supplierName, setSupplierName] = useState('')
+  const [performedByName, setPerformedByName] = useState('')
   const [documentNumber, setDocumentNumber] = useState('')
   const [notes, setNotes] = useState('')
   const [customValues, setCustomValues] = useState<CustomFieldValues>({})
@@ -102,6 +103,7 @@ function ReceiveResources() {
     setResource(null)
     setQuantity('')
     setSupplierName('')
+    setPerformedByName('')
     setDocumentNumber('')
     setNotes('')
     setCustomValues({})
@@ -128,6 +130,7 @@ function ReceiveResources() {
       quantity: parsedQuantity,
       document_number: documentNumber || undefined,
       supplier_name: supplierName.trim() || undefined,
+      performed_by_name: performedByName.trim() || undefined,
       notes: notes || undefined,
       custom_fields: flatFields,
     })
@@ -212,6 +215,7 @@ function ReceiveResources() {
             supplierName: supplierName.trim() || undefined,
             documentRef: documentNumber,
             notes,
+            performerName: performedByName.trim() || undefined,
             fields: fields.map((f) => ({ label: f.field_name_ar, value: customValues[f.id] ?? '' })),
           })}
           onNew={resetForm}
@@ -328,6 +332,17 @@ function ReceiveResources() {
                     hint="يُدخل كتابةً — يمكن تركه فارغاً إذا لم يكن المصدر معروفاً"
                   />
                   <Input
+                    label="الشخص الذي قام بالاستلام"
+                    name="performedByName"
+                    placeholder="اكتب اسم الشخص المنفّذ للاستلام"
+                    value={performedByName}
+                    onChange={(e) => setPerformedByName(e.target.value)}
+                    disabled={submitting}
+                    hint="يُسجَّل في حقل مستقل عن المستخدم الذي أدخل البيانات"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
                     label="رقم المستند / محضر الاستلام"
                     name="documentNumber"
                     placeholder="مثال: محضر 1456"
@@ -335,16 +350,15 @@ function ReceiveResources() {
                     onChange={(e) => setDocumentNumber(e.target.value)}
                     disabled={submitting}
                   />
+                  <Input
+                    label="ملاحظات (اختياري)"
+                    name="notes"
+                    placeholder="أي ملاحظات على العملية أو حالة الموارد المستلمة"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    disabled={submitting}
+                  />
                 </div>
-
-                <Input
-                  label="ملاحظات (اختياري)"
-                  name="notes"
-                  placeholder="أي ملاحظات على العملية أو حالة الموارد المستلمة"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  disabled={submitting}
-                />
               </>
             )}
 
