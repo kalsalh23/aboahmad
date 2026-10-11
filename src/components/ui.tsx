@@ -249,7 +249,7 @@ export function Badge({ children, tone = 'neutral', className }: { children: Rea
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,.04)]', className)}>{children}</div>
+  return <div className={cn('rounded-xl border border-gray-200 bg-white', className)}>{children}</div>
 }
 
 export function CardHeader({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {

@@ -93,7 +93,7 @@ export default function Dashboard() {
                 <Link
                   key={action.to}
                   to={action.to}
-                  className="group flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-[#ded9c7] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,.04)] transition-colors hover:border-[#428177] hover:bg-[#f4f7f5] focus:outline-none focus:ring-2 focus:ring-[#428177] focus:ring-offset-2"
+                  className="group flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-[#ded9c7] bg-white p-4 transition-colors hover:border-[#428177] hover:bg-[#f4f7f5] focus:outline-none focus:ring-2 focus:ring-[#428177] focus:ring-offset-2"
                 >
                   <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e9f1ed] text-[#054239] group-hover:bg-[#428177] group-hover:text-white" aria-hidden>
