@@ -77,7 +77,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${greeting}${profile?.full_name_ar ? `، ${profile.full_name_ar}` : ''}`}
+        title={greeting}
         description={profile?.role?.name_ar ? `الدور: ${profile.role.name_ar}${profile.branch?.name_ar ? ` — ${profile.branch.name_ar}` : ''}` : undefined}
       />
 
@@ -93,15 +93,15 @@ export default function Dashboard() {
                 <Link
                   key={action.to}
                   to={action.to}
-                  className="group flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-[#ded9c7] bg-white p-4 transition-colors hover:border-[#428177] hover:bg-[#f4f7f5] focus:outline-none focus:ring-2 focus:ring-[#428177] focus:ring-offset-2"
+                  className="group flex h-full min-h-[152px] flex-col justify-between rounded-xl border border-[#ded9c7] bg-white p-5 transition-colors hover:border-[#428177] hover:bg-[#f4f7f5] focus:outline-none focus:ring-2 focus:ring-[#428177] focus:ring-offset-2"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e9f1ed] text-[#054239] group-hover:bg-[#428177] group-hover:text-white" aria-hidden>
-                      <Icon className="h-4.5 w-4.5" />
+                  <div className="flex items-center gap-3.5">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#e9f1ed] text-[#054239] group-hover:bg-[#428177] group-hover:text-white" aria-hidden>
+                      <Icon className="h-6 w-6" />
                     </span>
-                    <span className="text-sm font-semibold text-[#002623]">{action.title}</span>
+                    <span className="text-lg font-bold leading-snug text-[#002623]">{action.title}</span>
                   </div>
-                  <p className="text-xs leading-relaxed text-gray-500">{action.description}</p>
+                  <p className="text-sm leading-relaxed text-gray-600">{action.description}</p>
                 </Link>
               )
             })}
