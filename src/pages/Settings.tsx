@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Building2, Save, Truck, Users } from 'lucide-react'
+﻿import { useCallback, useEffect, useState } from 'react'
+import { Building2, Save, Users } from 'lucide-react'
 import { api } from '../services/api'
 import { BRAND } from '../config/brand'
 import { useAuth } from '../context/AuthContext'
-import type { Branch, Department, Person, Supplier } from '../types'
+import type { Branch, Person } from '../types'
 import { Badge, Button, Card, CardHeader, DataTable, Input, Modal, PageHeader } from '../components/ui'
 import { formatDate } from '../utils'
 
-type Tab = 'branches' | 'departments' | 'people' | 'suppliers'
+type Tab = 'branches' | 'people'
 
 export default function Settings() {
   const { profile } = useAuth()
@@ -15,14 +15,12 @@ export default function Settings() {
 
   const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
     { key: 'branches', label: 'الفروع والمواقع', icon: Building2 },
-    { key: 'departments', label: 'الأقسام', icon: Users },
     { key: 'people', label: 'الأشخاص المستلمون', icon: Users },
-    { key: 'suppliers', label: 'الجهات الموردة', icon: Truck },
   ]
 
   return (
     <div className="space-y-5">
-      <PageHeader title="الإعدادات" description="بيانات الجهة والفروع والأقسام والجهات الموردة" />
+      <PageHeader title="الإعدادات" description="بيانات الجهة والفروع والأشخاص المستلمين" />
 
       <Card>
         <CardHeader title="بيانات الجهة" description="تظهر في المستندات المطبوعة والتقارير الرسمية" />
@@ -54,9 +52,7 @@ export default function Settings() {
         </div>
 
         {tab === 'branches' && <BranchesTab />}
-        {tab === 'departments' && <DepartmentsTab />}
         {tab === 'people' && <PeopleTab />}
-        {tab === 'suppliers' && <SuppliersTab />}
       </Card>
 
       {profile && (
@@ -129,73 +125,6 @@ function BranchesTab() {
           { key: 'location', label: 'الموقع', render: (r) => r.location ?? '—' },
           { key: 'is_active', label: 'الحالة', render: (r) => <Badge tone={r.is_active ? 'success' : 'neutral'}>{r.is_active ? 'مفعّل' : 'موقوف'}</Badge> },
           { key: 'created_at', label: 'تاريخ الإضافة', render: (r) => formatDate(r.created_at) },
-        ]}
-      />
-    </div>
-  )
-}
-
-function DepartmentsTab() {
-  const [items, setItems] = useState<Department[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [name, setName] = useState('')
-  const [branchId, setBranchId] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    const [d, b] = await Promise.all([api.departments.list(), api.branches.list()])
-    setItems(d.data ?? [])
-    setBranches(b.data ?? [])
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  const submit = async () => {
-    if (!name.trim()) return setError('اسم القسم مطلوب')
-    setError(null)
-    setSaving(true)
-    const res = await api.departments.create({ name_ar: name.trim(), branch_id: branchId || undefined })
-    setSaving(false)
-    if (res.error) return setError(res.error)
-    setName('')
-    await load()
-  }
-
-  return (
-    <div>
-      <div className="grid gap-3 p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-        <Input label="اسم القسم / الشعبة" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: قسم الموارد" error={error} disabled={saving} />
-        <Input label="الفرع" value={branches.find((b) => b.id === branchId)?.name_ar ?? 'غير محدد'} readOnly disabled />
-        <div className="flex gap-2">
-          <select
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            value={branchId}
-            onChange={(e) => setBranchId(e.target.value)}
-            aria-label="اختيار الفرع"
-          >
-            <option value="">بدون فرع</option>
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name_ar}
-              </option>
-            ))}
-          </select>
-          <Button onClick={submit} loading={saving}>
-            <Save className="h-4 w-4" aria-hidden />
-            إضافة
-          </Button>
-        </div>
-      </div>
-      <DataTable<Department>
-        rows={items}
-        keyOf={(r) => r.id}
-        columns={[
-          { key: 'name', label: 'اسم القسم', render: (r) => r.name_ar },
-          { key: 'branch', label: 'الفرع', render: (r) => branches.find((b) => b.id === r.branch_id)?.name_ar ?? '—' },
-          { key: 'is_active', label: 'الحالة', render: (r) => <Badge tone={r.is_active ? 'success' : 'neutral'}>{r.is_active ? 'مفعّل' : 'موقوف'}</Badge> },
         ]}
       />
     </div>
@@ -288,53 +217,3 @@ function PersonModal({ person, onClose, onSaved }: { person: Person | null; onCl
   )
 }
 
-function SuppliersTab() {
-  const [items, setItems] = useState<Supplier[]>([])
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    const res = await api.suppliers.list()
-    setItems(res.data ?? [])
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  const submit = async () => {
-    if (!name.trim()) return setError('اسم الجهة مطلوب')
-    setError(null)
-    setSaving(true)
-    const res = await api.suppliers.create({ name_ar: name.trim(), phone: phone.trim() || undefined })
-    setSaving(false)
-    if (res.error) return setError(res.error)
-    setName('')
-    setPhone('')
-    await load()
-  }
-
-  return (
-    <div>
-      <div className="grid gap-3 p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-        <Input label="اسم الجهة الموردة" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: شركة التجهيزات" error={error} disabled={saving} />
-        <Input label="رقم الهاتف (اختياري)" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" disabled={saving} />
-        <Button onClick={submit} loading={saving}>
-          <Save className="h-4 w-4" aria-hidden />
-          إضافة جهة
-        </Button>
-      </div>
-      <DataTable<Supplier>
-        rows={items}
-        keyOf={(r) => r.id}
-        columns={[
-          { key: 'name', label: 'اسم الجهة', render: (r) => r.name_ar },
-          { key: 'phone', label: 'الهاتف', render: (r) => <span dir="ltr">{r.phone ?? '—'}</span> },
-          { key: 'is_active', label: 'الحالة', render: (r) => <Badge tone={r.is_active ? 'success' : 'neutral'}>{r.is_active ? 'مفعّل' : 'موقوف'}</Badge> },
-        ]}
-      />
-    </div>
-  )
-}

@@ -26,8 +26,6 @@ const NAV = [
 
 const EXTRA = [
   { to: '/app/settings', label: 'الإعدادات', perm: null },
-  { to: '/app/audit', label: 'سجل التدقيق', perm: 'audit.view' },
-  { to: '/app/users', label: 'المستخدمون والصلاحيات', perm: 'users.manage' },
 ]
 
 export default function Layout({ children }: { children?: ReactNode } = {}) {

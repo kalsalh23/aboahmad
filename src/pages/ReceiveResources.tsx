@@ -83,16 +83,16 @@ function ReceiveResources() {
   }
 
   const selectedUnit = resource?.unit ?? units.find((u) => u.id === resource?.unit_id)
-  const parsedQuantity = Number(quantity.replace(/[Ù -Ù©]/g, (d) => String('Ù Ù¡Ù¢Ù£Ù¤Ù¥Ù¦Ù§Ù¨Ù©'.indexOf(d))))
+  const parsedQuantity = Number(quantity.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))))
   const quantityValid = Number.isFinite(parsedQuantity) && parsedQuantity > 0
 
   const stepOneValid = !!categoryId && !!resourceId
   const stepTwoValid = quantityValid
 
   const steps = [
-    { label: 'Ø§Ù„Ù†ÙˆØ¹ Ùˆ Ø§Ù„Ø§Ø³Ù…', done: stepOneValid },
-    { label: 'Ø§Ù„ÙƒÙ…ÙŠØ©', done: stepTwoValid },
-    { label: 'Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…', done: true },
+    { label: 'النوع والاسم', done: stepOneValid },
+    { label: 'الكمية', done: stepTwoValid },
+    { label: 'بيانات الاستلام', done: true },
   ]
 
   const resetForm = () => {
@@ -113,8 +113,8 @@ function ReceiveResources() {
   const confirmReceipt = async () => {
     if (submitting) return
     setSubmitError(null)
-    if (!stepOneValid) return setSubmitError('Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ ÙˆØ§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯ Ø£ÙˆÙ„Ø§Ù‹')
-    if (!stepTwoValid) return setSubmitError('Ø£Ø¯Ø®Ù„ ÙƒÙ…ÙŠØ© ØµØ­ÙŠØ­Ø© Ø£ÙƒØ¨Ø± Ù…Ù† ØµÙØ±')
+    if (!stepOneValid) return setSubmitError('اختر نوع المورد واسم المورد أولاً')
+    if (!stepTwoValid) return setSubmitError('أدخل كمية صحيحة أكبر من صفر')
 
     setSubmitting(true)
     const flatFields: Record<string, string> = {}
@@ -127,14 +127,14 @@ function ReceiveResources() {
       resource_id: resourceId,
       quantity: parsedQuantity,
       document_number: documentNumber || undefined,
-      supplier_name: supplierName || undefined,
+      supplier_name: supplierName.trim() || undefined,
       notes: notes || undefined,
       custom_fields: flatFields,
     })
     setSubmitting(false)
 
     if (res.error || !res.data) {
-      setSubmitError(res.error ?? 'ØªØ¹Ø°Ù‘Ø± Ø­ÙØ¸ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…')
+      setSubmitError(res.error ?? 'تعذّر حفظ الاستلام')
       return
     }
     setDoneResult(res.data)
@@ -146,7 +146,7 @@ function ReceiveResources() {
     const res = await api.resources.create({ category_id: categoryId, name_ar: name, unit_id: unitId })
     setSaving(false)
     if (res.error || !res.data) {
-      setSubmitError(res.error ?? 'ØªØ¹Ø°Ù‘Ø± Ø­ÙØ¸ Ø§Ù„Ù…ÙˆØ±Ø¯ Ø§Ù„Ø¬Ø¯ÙŠØ¯')
+      setSubmitError(res.error ?? 'تعذّر حفظ المورد الجديد')
       return
     }
     await loadResources(categoryId)
@@ -160,16 +160,16 @@ function ReceiveResources() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ù…ÙˆØ§Ø±Ø¯"
-        description="Ø³Ø¬Ù‘Ù„ Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„ÙˆØ§Ø±Ø¯Ø© Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹ Ù…Ø¹ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ØµØ¯Ø± ÙˆØ§Ù„Ù…Ø³ØªÙ†Ø¯"
+        title="استلام الموارد"
+        description="سجّل الموارد الواردة إلى المستودع مع بيانات المصدر والمستند"
         actions={
           <Button variant="secondary" onClick={resetForm} disabled={submitting}>
-            Ø¹Ù…Ù„ÙŠØ© Ø¬Ø¯ÙŠØ¯Ø©
+            عملية جديدة
           </Button>
         }
       />
 
-      <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="Ø®Ø·ÙˆØ§Øª Ø§Ù„Ø¹Ù…Ù„ÙŠØ©">
+      <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="خطوات العملية">
         {steps.map((s, i) => (
           <li key={i} className="flex items-center gap-2">
             <span
@@ -183,7 +183,7 @@ function ReceiveResources() {
               ].join(' ')}
               aria-hidden
             >
-              {i < step || s.done ? 'âœ“' : i + 1}
+              {i < step || s.done ? '✓' : i + 1}
             </span>
             <span className={i === step ? 'font-semibold text-[#054239]' : 'text-gray-500'}>{s.label}</span>
             {i < steps.length - 1 && <span className="mx-1 h-px w-5 bg-gray-300" aria-hidden />}
@@ -192,7 +192,7 @@ function ReceiveResources() {
       </ol>
 
       {submitError && (
-        <Alert tone="danger" title="Ø®Ø·Ø£">
+        <Alert tone="danger" title="خطأ">
           {submitError}
         </Alert>
       )}
@@ -209,7 +209,7 @@ function ReceiveResources() {
             resourceName: resource?.name_ar ?? '',
             quantity: parsedQuantity,
             unit: selectedUnit?.name_ar ?? '',
-            supplierName,
+            supplierName: supplierName.trim() || undefined,
             documentRef: documentNumber,
             notes,
             fields: fields.map((f) => ({ label: f.field_name_ar, value: customValues[f.id] ?? '' })),
@@ -222,17 +222,17 @@ function ReceiveResources() {
           <CardHeader
             title={
               step === 0
-                ? 'Ø§Ù„Ø®Ø·ÙˆØ© 1: Ø§Ø®ØªÙŠØ§Ø± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ ÙˆØ§Ø³Ù…Ù‡'
+                ? 'الخطوة 1: اختيار نوع المورد واسمه'
                 : step === 1
-                ? 'Ø§Ù„Ø®Ø·ÙˆØ© 2: Ø§Ù„ÙƒÙ…ÙŠØ©'
-                : 'Ø§Ù„Ø®Ø·ÙˆØ© 3: Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…'
+                ? 'الخطوة 2: الكمية'
+                : 'الخطوة 3: بيانات الاستلام'
             }
             description={
               step === 0
-                ? 'Ø§Ø®ØªØ± Ø§Ù„ØªØµÙ†ÙŠÙ Ø«Ù… Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯ Ù…Ù† Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©'
+                ? 'اختر التصنيف ثم اسم المورد من القائمة'
                 : step === 1
-                ? 'Ø­Ø¯Ø¯ Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„ÙˆØ§Ø±Ø¯Ø©'
-                : 'Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…ÙˆØ±Ø¯Ø© ÙˆØ§Ù„Ù…Ø³ØªÙ†Ø¯ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)'
+                ? 'حدد الكمية الواردة'
+                : 'بيانات الجهة الموردة والمستند (اختياري)'
             }
           />
 
@@ -241,8 +241,8 @@ function ReceiveResources() {
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Select
-                    label="Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯"
-                    placeholder="Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯"
+                    label="نوع المورد"
+                    placeholder="اختر نوع المورد"
                     options={categories.map((c) => ({ value: c.id, label: c.name_ar }))}
                     value={categoryId}
                     onChange={(e) => onCategoryChange(e.target.value)}
@@ -251,17 +251,17 @@ function ReceiveResources() {
                   <div className="flex items-end gap-2">
                     <div className="flex-1">
                       <SearchableSelect
-                        label="Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯"
-                        placeholder="Ø§Ø®ØªØ± Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯"
-                        options={resources.map((r) => ({ value: r.id, label: `${r.name_ar}${r.code ? ` â€” ${r.code}` : ''}` }))}
+                        label="اسم المورد"
+                        placeholder="اختر اسم المورد"
+                        options={resources.map((r) => ({ value: r.id, label: `${r.name_ar}${r.code ? ` — ${r.code}` : ''}` }))}
                         value={resourceId}
                         onChange={onResourceChange}
                         disabled={!categoryId || submitting}
                       />
                     </div>
-                    <Button type="button" variant="secondary" onClick={() => setModalOpen(true)} disabled={!categoryId || submitting} title="Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯ Ø¶Ù…Ù† Ù‡Ø°Ø§ Ø§Ù„Ù†ÙˆØ¹">
+                    <Button type="button" variant="secondary" onClick={() => setModalOpen(true)} disabled={!categoryId || submitting} title="إضافة مورد جديد ضمن هذا النوع">
                       <Plus className="h-4 w-4" aria-hidden />
-                      <span className="hidden sm:inline">Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯</span>
+                      <span className="hidden sm:inline">مورد جديد</span>
                     </Button>
                   </div>
                 </div>
@@ -278,8 +278,8 @@ function ReceiveResources() {
                           <span dir="ltr">{resource.code}</span>
                         </Badge>
                       )}
-                      <Badge tone="info">{resource.is_asset ? 'Ø£ØµÙ„ ÙØ±Ø¯ÙŠ' : 'Ù…ÙˆØ±Ø¯ Ø§Ø³ØªÙ‡Ù„Ø§ÙƒÙŠ'}</Badge>
-                      <span className="text-xs text-gray-500">ÙˆØ­Ø¯Ø© Ø§Ù„Ù‚ÙŠØ§Ø³: {resource.unit?.name_ar ?? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯Ø©'}</span>
+                      <Badge tone="info">{resource.is_asset ? 'أصل فردي' : 'مورد استهلاكي'}</Badge>
+                      <span className="text-xs text-gray-500">وحدة القياس: {resource.unit?.name_ar ?? 'غير محددة'}</span>
                     </div>
                   </div>
                 )}
@@ -291,7 +291,7 @@ function ReceiveResources() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
                     ref={quantityRef}
-                    label="Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„ÙˆØ§Ø±Ø¯Ø©"
+                    label="الكمية الواردة"
                     name="quantity"
                     type="number"
                     min="0"
@@ -301,15 +301,15 @@ function ReceiveResources() {
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     disabled={submitting}
-                    error={quantity && !quantityValid ? 'Ø£Ø¯Ø®Ù„ ÙƒÙ…ÙŠØ© Ø±Ù‚Ù…ÙŠØ© Ø£ÙƒØ¨Ø± Ù…Ù† ØµÙØ±' : null}
-                    hint={selectedUnit ? `Ø§Ù„ÙˆØ­Ø¯Ø©: ${selectedUnit.name_ar}` : undefined}
+                    error={quantity && !quantityValid ? 'أدخل كمية رقمية أكبر من صفر' : null}
+                    hint={selectedUnit ? `الوحدة: ${selectedUnit.name_ar}` : undefined}
                   />
                   <Input
-                    label="ÙˆØ­Ø¯Ø© Ø§Ù„Ù‚ÙŠØ§Ø³"
+                    label="وحدة القياس"
                     value={selectedUnit ? selectedUnit.name_ar : ''}
                     readOnly
                     disabled
-                    placeholder="ØªÙØ­Ø¯Ø¯ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø­Ø³Ø¨ Ø§Ù„Ù…ÙˆØ±Ø¯"
+                    placeholder="تُحدد تلقائياً حسب المورد"
                   />
                 </div>
               </>
@@ -319,18 +319,18 @@ function ReceiveResources() {
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
-                    label="Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…ÙˆØ±Ø¯Ø© / Ø§Ù„Ù…ØµØ¯Ø±"
+                    label="الجهة الموردة / المصدر"
                     name="supplierName"
-                    placeholder="Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…ÙˆØ±Ø¯Ø©"
+                    placeholder="اكتب اسم الجهة الموردة"
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
                     disabled={submitting}
-                    hint="ÙŠÙØ¯Ø®Ù„ ÙƒØªØ§Ø¨Ø©Ù‹ â€” ÙŠÙ…ÙƒÙ† ØªØ±ÙƒÙ‡ ÙØ§Ø±ØºØ§Ù‹ Ø¥Ø°Ø§ Ù„Ù… ÙŠÙƒÙ† Ø§Ù„Ù…ØµØ¯Ø± Ù…Ø¹Ø±ÙˆÙØ§Ù‹"
+                    hint="يُدخل كتابةً — يمكن تركه فارغاً إذا لم يكن المصدر معروفاً"
                   />
                   <Input
-                    label="Ø±Ù‚Ù… Ø§Ù„Ù…Ø³ØªÙ†Ø¯ / Ù…Ø­Ø¶Ø± Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…"
+                    label="رقم المستند / محضر الاستلام"
                     name="documentNumber"
-                    placeholder="Ù…Ø«Ø§Ù„: Ù…Ø­Ø¶Ø± 1456"
+                    placeholder="مثال: محضر 1456"
                     value={documentNumber}
                     onChange={(e) => setDocumentNumber(e.target.value)}
                     disabled={submitting}
@@ -338,9 +338,9 @@ function ReceiveResources() {
                 </div>
 
                 <Input
-                  label="Ù…Ù„Ø§Ø­Ø¸Ø§Øª (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)"
+                  label="ملاحظات (اختياري)"
                   name="notes"
-                  placeholder="Ø£ÙŠ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ù…Ù„ÙŠØ© Ø£Ùˆ Ø­Ø§Ù„Ø© Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„Ù…Ø³ØªÙ„Ù…Ø©"
+                  placeholder="أي ملاحظات على العملية أو حالة الموارد المستلمة"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   disabled={submitting}
@@ -351,26 +351,26 @@ function ReceiveResources() {
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-4">
               <Button variant="ghost" onClick={() => setStep((s) => Math.max(0, s - 1) as Step)} disabled={step === 0 || submitting}>
                 <ChevronLeft className="h-4 w-4 rotate-180" aria-hidden />
-                Ø§Ù„Ø³Ø§Ø¨Ù‚
+                السابق
               </Button>
 
               {step < 3 ? (
                 <Button
                   onClick={() => {
-                    if (step === 0 && !stepOneValid) return setSubmitError('Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ ÙˆØ§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯')
-                    if (step === 1 && !stepTwoValid) return setSubmitError('Ø£Ø¯Ø®Ù„ ÙƒÙ…ÙŠØ© ØµØ­ÙŠØ­Ø© Ø£ÙƒØ¨Ø± Ù…Ù† ØµÙØ±')
+                    if (step === 0 && !stepOneValid) return setSubmitError('اختر نوع المورد واسم المورد')
+                    if (step === 1 && !stepTwoValid) return setSubmitError('أدخل كمية صحيحة أكبر من صفر')
                     setSubmitError(null)
                     setStep((s) => Math.min(3, s + 1) as Step)
                   }}
                   disabled={submitting}
                 >
-                  Ø§Ù„ØªØ§Ù„ÙŠ
+                  التالي
                   <ArrowRight className="h-4 w-4 rotate-180" aria-hidden />
                 </Button>
               ) : (
                 <Button onClick={confirmReceipt} loading={submitting} size="lg">
                   <Check className="h-4 w-4" aria-hidden />
-                  ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… ÙˆØ­ÙØ¸ Ø§Ù„Ø¹Ù…Ù„ÙŠØ©
+                  تأكيد الاستلام وحفظ العملية
                 </Button>
               )}
             </div>
@@ -417,9 +417,9 @@ function SuccessPanel({
             <Check className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-base font-bold text-[#054239]">ØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ø¨Ù†Ø¬Ø§Ø­</h2>
+            <h2 className="text-base font-bold text-[#054239]">تم تأكيد الاستلام بنجاح</h2>
             <p className="mt-0.5 text-xs text-gray-600">
-              Ø±Ù‚Ù… Ø­Ø±ÙƒØ© Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…:{' '}
+              رقم حركة الاستلام:{' '}
               <span className="font-mono font-semibold" dir="ltr">
                 {movementNumber}
               </span>
@@ -429,7 +429,7 @@ function SuccessPanel({
       </div>
       <div className="space-y-3 p-5">
         <p className="text-sm text-gray-700">
-          ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© <span className="font-semibold">{formatNumber(quantity)}</span> {unit ?? ''} Ù…Ù† Â«{resourceName}Â» Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†. Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ø­Ø§Ù„ÙŠ Ø¨Ø¹Ø¯ Ø§Ù„Ø¹Ù…Ù„ÙŠØ©:{' '}
+          تمت إضافة <span className="font-semibold">{formatNumber(quantity)}</span> {unit ?? ''} من «{resourceName}» إلى المخزون. الرصيد الحالي بعد العملية:{' '}
           <span className="font-semibold text-[#054239]">
             {formatNumber(newBalance)} {unit ?? ''}
           </span>
@@ -438,15 +438,15 @@ function SuccessPanel({
         <div className="flex flex-wrap gap-2">
           <Button onClick={onPrint} variant="secondary">
             <Printer className="h-4 w-4" aria-hidden />
-            Ø·Ø¨Ø§Ø¹Ø© Ù…Ø³ØªÙ†Ø¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…
+            طباعة مستند الاستلام
           </Button>
           <Button onClick={onNew}>
             <Plus className="h-4 w-4" aria-hidden />
-            Ø¹Ù…Ù„ÙŠØ© Ø§Ø³ØªÙ„Ø§Ù… Ø¬Ø¯ÙŠØ¯Ø©
+            عملية استلام جديدة
           </Button>
           <Button onClick={onGoStock} variant="ghost">
             <FileText className="h-4 w-4" aria-hidden />
-            Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†
+            عرض المخزون
           </Button>
         </div>
       </div>
@@ -470,24 +470,24 @@ function NewResourceModal({
   const [error, setError] = useState<string | null>(null)
 
   const submit = () => {
-    if (!name.trim()) return setError('Ø£Ø¯Ø®Ù„ Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯')
+    if (!name.trim()) return setError('أدخل اسم المورد')
     setError(null)
     onSave(name.trim(), unitId)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="إضافة مورد جديد">
       <div className="absolute inset-0" onClick={onCancel} aria-hidden />
       <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
-        <h2 className="mb-1 text-sm font-bold text-gray-900">Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯</h2>
-        <p className="mb-4 text-xs text-gray-500">Ø³ÙŠÙØ¶Ø§Ù Ø§Ù„Ù…ÙˆØ±Ø¯ Ø¥Ù„Ù‰ Ø§Ù„Ù†ÙˆØ¹ Ø§Ù„Ù…Ø­Ø¯Ø¯ ÙˆØ³ÙŠØ¸Ù‡Ø± ÙÙˆØ±Ø§Ù‹ ÙÙŠ Ø§Ù„Ù‚ÙˆØ§Ø¦Ù….</p>
+        <h2 className="mb-1 text-sm font-bold text-gray-900">إضافة مورد جديد</h2>
+        <p className="mb-4 text-xs text-gray-500">سيُضاف المورد إلى النوع المحدد وسيظهر فوراً في القوائم.</p>
         <div className="space-y-3">
-          <Input label="Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="Ù…Ø«Ø§Ù„: Ø¨Ø±Ø§Ø¯ØŒ ØºØ³Ø§Ù„Ø©ØŒ Ù…ÙƒÙŠÙ" disabled={saving} />
-          <Select label="ÙˆØ­Ø¯Ø© Ø§Ù„Ù‚ÙŠØ§Ø³" placeholder="Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø©" options={units.map((u) => ({ value: u.id, label: u.name_ar }))} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
+          <Input label="اسم المورد" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="مثال: براد، غسالة، مكيف" disabled={saving} />
+          <Select label="وحدة القياس" placeholder="اختر الوحدة" options={units.map((u) => ({ value: u.id, label: u.name_ar }))} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
         </div>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onCancel} disabled={saving}>Ø¥Ù„ØºØ§Ø¡</Button>
-          <Button onClick={submit} loading={saving}>Ø­ÙØ¸ Ø§Ù„Ù…ÙˆØ±Ø¯</Button>
+          <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
+          <Button onClick={submit} loading={saving}>حفظ المورد</Button>
         </div>
       </div>
     </div>
