@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Check, ChevronLeft, CircleAlert, Package, Plus, Printer, UserRound } from 'lucide-react'
 import { api } from '../services/api'
-import type { Branch, Person, Resource, ResourceCategory, ResourceCustomField, CustomValues } from '../types'
+import type { Person, Resource, ResourceCategory, ResourceCustomField, CustomValues } from '../types'
 import { Alert, Badge, Button, Card, CardHeader, Input, PageHeader, Select, Spinner } from '../components/ui'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { formatNumber, formatQuantity } from '../utils'
@@ -16,14 +16,13 @@ function DeliverResources() {
   const [categories, setCategories] = useState<ResourceCategory[]>([])
   const [resources, setResources] = useState<Resource[]>([])
   const [fields, setFields] = useState<ResourceCustomField[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
   const [people, setPeople] = useState<Person[]>([])
 
   const [categoryId, setCategoryId] = useState('')
   const [resourceId, setResourceId] = useState('')
   const [resource, setResource] = useState<Resource | null>(null)
   const [quantity, setQuantity] = useState('')
-  const [branchId, setBranchId] = useState('')
+  const [branchName, setBranchName] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [recipientName, setRecipientName] = useState('')
   const [recipientPersonId, setRecipientPersonId] = useState('')
@@ -43,13 +42,11 @@ function DeliverResources() {
 
   useEffect(() => {
     const load = async () => {
-      const [cats, brs, ppl] = await Promise.all([
+      const [cats, ppl] = await Promise.all([
         api.categories.list(),
-        api.branches.list(),
         api.people.list(),
       ])
       setCategories((cats.data ?? []).filter((c) => c.is_active))
-      setBranches(brs.data ?? [])
       setPeople(ppl.data ?? [])
     }
     load()
@@ -97,7 +94,7 @@ function DeliverResources() {
     quantityRef.current?.focus()
   }
 
-  const parsedQuantity = Number(quantity.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))))
+  const parsedQuantity = Number(quantity.replace(/[Ù -Ù©]/g, (d) => String('Ù Ù¡Ù¢Ù£Ù¤Ù¥Ù¦Ù§Ù¨Ù©'.indexOf(d))))
   const quantityValid = Number.isFinite(parsedQuantity) && parsedQuantity > 0
   const exceedsBalance = available !== null && quantityValid && parsedQuantity > available
   const remainingAfter = available !== null && quantityValid ? Math.max(0, available - parsedQuantity) : null
@@ -109,9 +106,9 @@ function DeliverResources() {
 
   const steps = useMemo(
     () => [
-      { label: 'النوع و الاسم', done: stepOneValid },
-      { label: 'الكمية و الجهة', done: stepTwoValid },
-      { label: 'المستلم', done: stepThreeValid },
+      { label: 'Ø§Ù„Ù†ÙˆØ¹ Ùˆ Ø§Ù„Ø§Ø³Ù…', done: stepOneValid },
+      { label: 'Ø§Ù„ÙƒÙ…ÙŠØ© Ùˆ Ø§Ù„Ø¬Ù‡Ø©', done: stepTwoValid },
+      { label: 'Ø§Ù„Ù…Ø³ØªÙ„Ù…', done: stepThreeValid },
     ],
     [stepOneValid, stepTwoValid, stepThreeValid]
   )
@@ -122,7 +119,7 @@ function DeliverResources() {
     setResourceId('')
     setResource(null)
     setQuantity('')
-    setBranchId('')
+    setBranchName('')
     setDepartmentId('')
     setRecipientName('')
     setRecipientPersonId('')
@@ -138,10 +135,10 @@ function DeliverResources() {
   const confirmDelivery = async () => {
     if (submitting) return
     setSubmitError(null)
-    if (!stepOneValid) return setSubmitError('اختر نوع المورد واسم المورد')
-    if (!quantityValid) return setSubmitError('أدخل كمية صحيحة أكبر من صفر')
-    if (exceedsBalance) return setSubmitError('لا يمكن صرف كمية أكبر من الرصيد المتاح')
-    if (!recipientName.trim()) return setSubmitError('أدخل اسم الشخص المستلم')
+    if (!stepOneValid) return setSubmitError('Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ ÙˆØ§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯')
+    if (!quantityValid) return setSubmitError('Ø£Ø¯Ø®Ù„ ÙƒÙ…ÙŠØ© ØµØ­ÙŠØ­Ø© Ø£ÙƒØ¨Ø± Ù…Ù† ØµÙØ±')
+    if (exceedsBalance) return setSubmitError('Ù„Ø§ ÙŠÙ…ÙƒÙ† ØµØ±Ù ÙƒÙ…ÙŠØ© Ø£ÙƒØ¨Ø± Ù…Ù† Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø­')
+    if (!recipientName.trim()) return setSubmitError('Ø£Ø¯Ø®Ù„ Ø§Ø³Ù… Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ù…Ø³ØªÙ„Ù…')
 
     setSubmitting(true)
     const flat: Record<string, string> = {}
@@ -155,7 +152,7 @@ function DeliverResources() {
       quantity: parsedQuantity,
       recipient_name: recipientName.trim(),
       recipient_person_id: recipientPersonId || undefined,
-      branch_id: branchId || undefined,
+      branch_name: branchName.trim() || undefined,
       department_id: departmentId || undefined,
       document_number: documentNumber || undefined,
       notes: notes || undefined,
@@ -164,7 +161,7 @@ function DeliverResources() {
     setSubmitting(false)
 
     if (res.error || !res.data) {
-      setSubmitError(res.error ?? 'تعذّر حفظ التسليم')
+      setSubmitError(res.error ?? 'ØªØ¹Ø°Ù‘Ø± Ø­ÙØ¸ Ø§Ù„ØªØ³Ù„ÙŠÙ…')
       return
     }
     setDoneResult(res.data)
@@ -174,7 +171,7 @@ function DeliverResources() {
   const saveNewResourceInline = async (name: string, unitId: string) => {
     const res = await api.resources.create({ category_id: categoryId, name_ar: name, unit_id: unitId })
     if (res.error || !res.data) {
-      setSubmitError(res.error ?? 'تعذّر حفظ المورد الجديد')
+      setSubmitError(res.error ?? 'ØªØ¹Ø°Ù‘Ø± Ø­ÙØ¸ Ø§Ù„Ù…ÙˆØ±Ø¯ Ø§Ù„Ø¬Ø¯ÙŠØ¯')
       return
     }
     await loadResources(categoryId)
@@ -187,9 +184,9 @@ function DeliverResources() {
   }
 
   const saveNewPersonInline = async (name: string, phone: string) => {
-    const res = await api.people.create({ name_ar: name, phone, branch_id: branchId || undefined, department_id: departmentId || undefined })
+    const res = await api.people.create({ name_ar: name, phone, department_id: departmentId || undefined })
     if (res.error || !res.data) {
-      setSubmitError(res.error ?? 'تعذّر حفظ الشخص المستلم')
+      setSubmitError(res.error ?? 'ØªØ¹Ø°Ù‘Ø± Ø­ÙØ¸ Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ù…Ø³ØªÙ„Ù…')
       return
     }
     setPeople((p) => [...p, res.data as Person])
@@ -202,16 +199,16 @@ function DeliverResources() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title="تسليم الموارد"
-        description="سجّل صرف الموارد للأفراد أو الفروع مع المستند وبيانات المستلم"
+        title="ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù…ÙˆØ§Ø±Ø¯"
+        description="Ø³Ø¬Ù‘Ù„ ØµØ±Ù Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ù„Ù„Ø£ÙØ±Ø§Ø¯ Ø£Ùˆ Ø§Ù„ÙØ±ÙˆØ¹ Ù…Ø¹ Ø§Ù„Ù…Ø³ØªÙ†Ø¯ ÙˆØ¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø³ØªÙ„Ù…"
         actions={
           <Button variant="secondary" onClick={resetForm} disabled={submitting}>
-            عملية جديدة
+            Ø¹Ù…Ù„ÙŠØ© Ø¬Ø¯ÙŠØ¯Ø©
           </Button>
         }
       />
 
-      <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="خطوات العملية">
+      <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="Ø®Ø·ÙˆØ§Øª Ø§Ù„Ø¹Ù…Ù„ÙŠØ©">
         {steps.map((s, i) => (
           <li key={i} className="flex items-center gap-2">
             <span
@@ -221,7 +218,7 @@ function DeliverResources() {
               ].join(' ')}
               aria-hidden
             >
-              {i < step || s.done ? '✓' : i + 1}
+              {i < step || s.done ? 'âœ“' : i + 1}
             </span>
             <span className={i === step ? 'font-semibold text-[#054239]' : 'text-gray-500'}>{s.label}</span>
             {i < steps.length - 1 && <span className="mx-1 h-px w-5 bg-gray-300" aria-hidden />}
@@ -230,7 +227,7 @@ function DeliverResources() {
       </ol>
 
       {submitError && (
-        <Alert tone="danger" title="خطأ">
+        <Alert tone="danger" title="Ø®Ø·Ø£">
           {submitError}
         </Alert>
       )}
@@ -243,9 +240,9 @@ function DeliverResources() {
                 <Check className="h-5 w-5" />
               </span>
               <div>
-                <h2 className="text-base font-bold text-[#054239]">تم تأكيد التسليم بنجاح</h2>
+                <h2 className="text-base font-bold text-[#054239]">ØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø¨Ù†Ø¬Ø§Ø­</h2>
                 <p className="mt-0.5 text-xs text-gray-600">
-                  رقم حركة التسليم:{' '}
+                  Ø±Ù‚Ù… Ø­Ø±ÙƒØ© Ø§Ù„ØªØ³Ù„ÙŠÙ…:{' '}
                   <span className="font-mono font-semibold" dir="ltr">
                     {doneResult.movement_number}
                   </span>
@@ -255,9 +252,9 @@ function DeliverResources() {
           </div>
           <div className="space-y-3 p-5">
             <p className="text-sm text-gray-700">
-              تم تسليم <span className="font-semibold">{formatNumber(parsedQuantity)}</span> {resource?.unit?.name_ar ?? ''} من «{resource?.name_ar}» إلى{' '}
+              ØªÙ… ØªØ³Ù„ÙŠÙ… <span className="font-semibold">{formatNumber(parsedQuantity)}</span> {resource?.unit?.name_ar ?? ''} Ù…Ù† Â«{resource?.name_ar}Â» Ø¥Ù„Ù‰{' '}
               <span className="font-semibold">{recipientName}</span>
-              {branches.find((b) => b.id === branchId)?.name_ar ? ` — فرع ${branches.find((b) => b.id === branchId)?.name_ar}` : ''}. الرصيد المتبقي:{' '}
+              {branchName.trim() ? ` — فرع ${branchName.trim()}` : ''}. الرصيد المتبقي:{' '}
               <span className="font-semibold text-[#054239]">
                 {formatNumber(doneResult.new_balance)} {resource?.unit?.name_ar ?? ''}
               </span>
@@ -272,7 +269,7 @@ function DeliverResources() {
                     quantity: parsedQuantity,
                     unit: resource?.unit?.name_ar,
                     recipientName,
-                    branchName: branches.find((b) => b.id === branchId)?.name_ar,
+                    branchName: branchName.trim() || undefined,
                     documentRef: documentNumber,
                     notes,
                     remainingBalance: doneResult.new_balance,
@@ -282,14 +279,14 @@ function DeliverResources() {
                 variant="secondary"
               >
                 <Printer className="h-4 w-4" aria-hidden />
-                طباعة مستند التسليم
+                Ø·Ø¨Ø§Ø¹Ø© Ù…Ø³ØªÙ†Ø¯ Ø§Ù„ØªØ³Ù„ÙŠÙ…
               </Button>
               <Button onClick={resetForm}>
                 <Plus className="h-4 w-4" aria-hidden />
-                عملية تسليم جديدة
+                Ø¹Ù…Ù„ÙŠØ© ØªØ³Ù„ÙŠÙ… Ø¬Ø¯ÙŠØ¯Ø©
               </Button>
               <Button variant="ghost" onClick={() => navigate('/app/stock')}>
-                عرض المخزون
+                Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†
               </Button>
             </div>
           </div>
@@ -299,17 +296,17 @@ function DeliverResources() {
           <CardHeader
             title={
               step === 0
-                ? 'الخطوة 1: اختيار نوع المورد واسمه'
+                ? 'Ø§Ù„Ø®Ø·ÙˆØ© 1: Ø§Ø®ØªÙŠØ§Ø± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ ÙˆØ§Ø³Ù…Ù‡'
                 : step === 1
-                ? 'الخطوة 2: الكمية والجهة المستلمة'
-                : 'الخطوة 3: المستلم'
+                ? 'Ø§Ù„Ø®Ø·ÙˆØ© 2: Ø§Ù„ÙƒÙ…ÙŠØ© ÙˆØ§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…Ø³ØªÙ„Ù…Ø©'
+                : 'Ø§Ù„Ø®Ø·ÙˆØ© 3: Ø§Ù„Ù…Ø³ØªÙ„Ù…'
             }
             description={
               step === 0
-                ? 'اختر التصنيف ثم اسم المورد المطلوب تسليمه'
+                ? 'Ø§Ø®ØªØ± Ø§Ù„ØªØµÙ†ÙŠÙ Ø«Ù… Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨ ØªØ³Ù„ÙŠÙ…Ù‡'
                 : step === 1
-                ? 'حدد الكمية والفرع أو الجهة المستلمة'
-                : 'اسم الشخص المستلم (مطلوب)'
+                ? 'Ø­Ø¯Ø¯ Ø§Ù„ÙƒÙ…ÙŠØ© ÙˆØ§Ù„ÙØ±Ø¹ Ø£Ùˆ Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…Ø³ØªÙ„Ù…Ø©'
+                : 'Ø§Ø³Ù… Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ù…Ø³ØªÙ„Ù… (Ù…Ø·Ù„ÙˆØ¨)'
             }
           />
 
@@ -318,8 +315,8 @@ function DeliverResources() {
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Select
-                    label="نوع المورد"
-                    placeholder="اختر نوع المورد"
+                    label="Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯"
+                    placeholder="Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯"
                     options={categories.map((c) => ({ value: c.id, label: c.name_ar }))}
                     value={categoryId}
                     onChange={(e) => onCategoryChange(e.target.value)}
@@ -328,9 +325,9 @@ function DeliverResources() {
                   <div className="flex items-end gap-2">
                     <div className="flex-1">
                       <SearchableSelect
-                        label="اسم المورد"
-                        placeholder="اختر اسم المورد"
-                        options={resources.map((r) => ({ value: r.id, label: `${r.name_ar}${r.code ? ` — ${r.code}` : ''}` }))}
+                        label="Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯"
+                        placeholder="Ø§Ø®ØªØ± Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯"
+                        options={resources.map((r) => ({ value: r.id, label: `${r.name_ar}${r.code ? ` â€” ${r.code}` : ''}` }))}
                         value={resourceId}
                         onChange={onResourceChange}
                         disabled={!categoryId || submitting}
@@ -338,7 +335,7 @@ function DeliverResources() {
                     </div>
                     <Button type="button" variant="secondary" onClick={() => setNewResourceOpen(true)} disabled={!categoryId || submitting}>
                       <Plus className="h-4 w-4" aria-hidden />
-                      <span className="hidden sm:inline">إضافة مورد جديد</span>
+                      <span className="hidden sm:inline">Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯</span>
                     </Button>
                   </div>
                 </div>
@@ -351,14 +348,14 @@ function DeliverResources() {
                         {resource.name_ar}
                       </span>
                       {resource.code && <Badge tone="neutral"><span dir="ltr">{resource.code}</span></Badge>}
-                      <Badge tone="info">{resource.is_asset ? 'أصل فردي' : 'مورد استهلاكي'}</Badge>
+                      <Badge tone="info">{resource.is_asset ? 'Ø£ØµÙ„ ÙØ±Ø¯ÙŠ' : 'Ù…ÙˆØ±Ø¯ Ø§Ø³ØªÙ‡Ù„Ø§ÙƒÙŠ'}</Badge>
                     </div>
                     <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                      الرصيد المتاح حالياً:{' '}
+                      Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø­ Ø­Ø§Ù„ÙŠØ§Ù‹:{' '}
                       {loadingBalance ? (
                         <Spinner className="py-0" label="" />
                       ) : available === null ? (
-                        '—'
+                        'â€”'
                       ) : (
                         <span className="font-semibold text-[#054239]">{formatQuantity(available, resource.unit?.name_ar)}</span>
                       )}
@@ -373,7 +370,7 @@ function DeliverResources() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
                     ref={quantityRef}
-                    label="الكمية المسلّمة"
+                    label="Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…Ø³Ù„Ù‘Ù…Ø©"
                     name="quantity"
                     type="number"
                     min="0"
@@ -383,22 +380,22 @@ function DeliverResources() {
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     disabled={submitting}
-                    error={exceedsBalance ? `الكمية تتجاوز الرصيد المتاح (${formatNumber(available ?? 0)})` : undefined}
-                    hint={resource ? `الوحدة: ${resource.unit?.name_ar ?? 'غير محددة'} — المتاح: ${formatNumber(available ?? 0)}` : undefined}
+                    error={exceedsBalance ? `Ø§Ù„ÙƒÙ…ÙŠØ© ØªØªØ¬Ø§ÙˆØ² Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø­ (${formatNumber(available ?? 0)})` : undefined}
+                    hint={resource ? `Ø§Ù„ÙˆØ­Ø¯Ø©: ${resource.unit?.name_ar ?? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯Ø©'} â€” Ø§Ù„Ù…ØªØ§Ø­: ${formatNumber(available ?? 0)}` : undefined}
                   />
-                  <Select
-                    label="الفرع أو الجهة المستلمة"
-                    placeholder="اختر الفرع (إن وجد)"
-                    options={branches.map((b) => ({ value: b.id, label: b.name_ar }))}
-                    value={branchId}
-                    onChange={(e) => setBranchId(e.target.value)}
+                  <Input
+                    label="Ø§Ù„ÙØ±Ø¹ Ø£Ùˆ Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…Ø³ØªÙ„Ù…Ø©"
+                    name="branchName"
+                    placeholder="Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„ÙØ±Ø¹ Ø£Ùˆ Ø§Ù„Ø¬Ù‡Ø©"
+                    value={branchName}
+                    onChange={(e) => setBranchName(e.target.value)}
                     disabled={submitting}
-                  />
-                </div>
+                    hint="ÙŠÙØ¯Ø®Ù„ ÙƒØªØ§Ø¨Ø©Ù‹ â€” Ù…Ø«Ø§Ù„: ÙØ±Ø¹ Ø­Ù…Ø§Ù‡ØŒ Ù‚Ø³Ù… Ø§Ù„Ù…ÙˆØ§Ø±Ø¯"
+                  />                </div>
                 <Input
-                  label="رقم مستند التسليم / العهدة"
+                  label="Ø±Ù‚Ù… Ù…Ø³ØªÙ†Ø¯ Ø§Ù„ØªØ³Ù„ÙŠÙ… / Ø§Ù„Ø¹Ù‡Ø¯Ø©"
                   name="documentNumber"
-                  placeholder="مثال: عهدة رقم 88"
+                  placeholder="Ù…Ø«Ø§Ù„: Ø¹Ù‡Ø¯Ø© Ø±Ù‚Ù… 88"
                   value={documentNumber}
                   onChange={(e) => setDocumentNumber(e.target.value)}
                   disabled={submitting}
@@ -407,7 +404,7 @@ function DeliverResources() {
                 {quantityValid && !exceedsBalance && remainingAfter !== null && (
                   <div className="flex items-center gap-2 rounded-lg border border-[#c9dcd5] bg-[#f4f7f5] px-3 py-2 text-xs text-[#054239]">
                     <CircleAlert className="h-3.5 w-3.5" aria-hidden />
-                    الرصيد المتبقي بعد هذه العملية: <span className="font-semibold">{formatNumber(remainingAfter)}</span> {resource?.unit?.name_ar ?? ''}
+                    Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ Ø¨Ø¹Ø¯ Ù‡Ø°Ù‡ Ø§Ù„Ø¹Ù…Ù„ÙŠØ©: <span className="font-semibold">{formatNumber(remainingAfter)}</span> {resource?.unit?.name_ar ?? ''}
                   </div>
                 )}
               </>
@@ -419,8 +416,8 @@ function DeliverResources() {
                   <div className="flex items-end gap-2">
                     <div className="flex-1">
                       <SearchableSelect
-                        label="الشخص المستلم"
-                        placeholder="ابحث عن شخص مسجل"
+                        label="Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ù…Ø³ØªÙ„Ù…"
+                        placeholder="Ø§Ø¨Ø­Ø« Ø¹Ù† Ø´Ø®Øµ Ù…Ø³Ø¬Ù„"
                         options={people.map((p) => ({ value: p.id, label: p.name_ar }))}
                         value={recipientPersonId}
                         onChange={(id) => {
@@ -433,24 +430,24 @@ function DeliverResources() {
                     </div>
                     <Button type="button" variant="secondary" onClick={() => setNewPersonOpen(true)} disabled={submitting}>
                       <UserRound className="h-4 w-4" aria-hidden />
-                      <span className="hidden sm:inline">شخص جديد</span>
+                      <span className="hidden sm:inline">Ø´Ø®Øµ Ø¬Ø¯ÙŠØ¯</span>
                     </Button>
                   </div>
                   <Input
-                    label="اسم الشخص المستلم"
+                    label="Ø§Ø³Ù… Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ù…Ø³ØªÙ„Ù…"
                     name="recipientName"
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
                     disabled={submitting}
-                    error={!recipientName.trim() ? 'اسم المستلم مطلوب' : null}
-                    hint="يُسجّل في حقل منفصل عن الموظف المنفذ للتسليم"
+                    error={!recipientName.trim() ? 'Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªÙ„Ù… Ù…Ø·Ù„ÙˆØ¨' : null}
+                    hint="ÙŠÙØ³Ø¬Ù‘Ù„ ÙÙŠ Ø­Ù‚Ù„ Ù…Ù†ÙØµÙ„ Ø¹Ù† Ø§Ù„Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ù†ÙØ° Ù„Ù„ØªØ³Ù„ÙŠÙ…"
                   />
                 </div>
 
                 <Input
-                  label="ملاحظات (اختياري)"
+                  label="Ù…Ù„Ø§Ø­Ø¸Ø§Øª (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)"
                   name="notes"
-                  placeholder="حالة المورد أو أي ملاحظات"
+                  placeholder="Ø­Ø§Ù„Ø© Ø§Ù„Ù…ÙˆØ±Ø¯ Ø£Ùˆ Ø£ÙŠ Ù…Ù„Ø§Ø­Ø¸Ø§Øª"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   disabled={submitting}
@@ -461,27 +458,27 @@ function DeliverResources() {
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-4">
               <Button variant="ghost" onClick={() => setStep((s) => Math.max(0, s - 1) as Step)} disabled={step === 0 || submitting}>
                 <ChevronLeft className="h-4 w-4 rotate-180" aria-hidden />
-                السابق
+                Ø§Ù„Ø³Ø§Ø¨Ù‚
               </Button>
 
               {step < 3 ? (
                 <Button
                   onClick={() => {
-                    if (step === 0 && !stepOneValid) return setSubmitError('اختر نوع المورد واسم المورد')
-                    if (step === 1 && !quantityValid) return setSubmitError('أدخل كمية صحيحة أكبر من صفر')
-                    if (step === 1 && exceedsBalance) return setSubmitError('الكمية تتجاوز الرصيد المتاح')
+                    if (step === 0 && !stepOneValid) return setSubmitError('Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ ÙˆØ§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯')
+                    if (step === 1 && !quantityValid) return setSubmitError('Ø£Ø¯Ø®Ù„ ÙƒÙ…ÙŠØ© ØµØ­ÙŠØ­Ø© Ø£ÙƒØ¨Ø± Ù…Ù† ØµÙØ±')
+                    if (step === 1 && exceedsBalance) return setSubmitError('Ø§Ù„ÙƒÙ…ÙŠØ© ØªØªØ¬Ø§ÙˆØ² Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø­')
                     setSubmitError(null)
                     setStep((s) => Math.min(3, s + 1) as Step)
                   }}
                   disabled={submitting}
                 >
-                  التالي
+                  Ø§Ù„ØªØ§Ù„ÙŠ
                   <ArrowRight className="h-4 w-4 rotate-180" aria-hidden />
                 </Button>
               ) : (
                 <Button onClick={confirmDelivery} loading={submitting} size="lg">
                   <Check className="h-4 w-4" aria-hidden />
-                  تأكيد التسليم وحفظ العملية
+                  ØªØ£ÙƒÙŠØ¯ Ø§Ù„ØªØ³Ù„ÙŠÙ… ÙˆØ­ÙØ¸ Ø§Ù„Ø¹Ù…Ù„ÙŠØ©
                 </Button>
               )}
             </div>
@@ -518,8 +515,8 @@ function NewResourceModal({ onCancel, onSave }: { onCancel: () => void; onSave: 
   }, [])
 
   const submit = async () => {
-    if (!name.trim()) return setError('أدخل اسم المورد')
-    if (!unitId) return setError('اختر وحدة القياس')
+    if (!name.trim()) return setError('Ø£Ø¯Ø®Ù„ Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯')
+    if (!unitId) return setError('Ø§Ø®ØªØ± ÙˆØ­Ø¯Ø© Ø§Ù„Ù‚ÙŠØ§Ø³')
     setError(null)
     setSaving(true)
     await onSave(name.trim(), unitId)
@@ -527,18 +524,18 @@ function NewResourceModal({ onCancel, onSave }: { onCancel: () => void; onSave: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="إضافة مورد جديد">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯">
       <div className="absolute inset-0" onClick={onCancel} aria-hidden />
       <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
-        <h2 className="mb-1 text-sm font-bold text-gray-900">إضافة مورد جديد</h2>
-        <p className="mb-4 text-xs text-gray-500">سيُضاف المورد إلى النوع المحدد وسيظهر فوراً في القوائم.</p>
+        <h2 className="mb-1 text-sm font-bold text-gray-900">Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ±Ø¯ Ø¬Ø¯ÙŠØ¯</h2>
+        <p className="mb-4 text-xs text-gray-500">Ø³ÙŠÙØ¶Ø§Ù Ø§Ù„Ù…ÙˆØ±Ø¯ Ø¥Ù„Ù‰ Ø§Ù„Ù†ÙˆØ¹ Ø§Ù„Ù…Ø­Ø¯Ø¯ ÙˆØ³ÙŠØ¸Ù‡Ø± ÙÙˆØ±Ø§Ù‹ ÙÙŠ Ø§Ù„Ù‚ÙˆØ§Ø¦Ù….</p>
         <div className="space-y-3">
-          <Input label="اسم المورد" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="مثال: جعبة قتالية" disabled={saving} />
-          <Select label="وحدة القياس" placeholder="اختر الوحدة" options={units} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
+          <Input label="Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} placeholder="Ù…Ø«Ø§Ù„: Ø¬Ø¹Ø¨Ø© Ù‚ØªØ§Ù„ÙŠØ©" disabled={saving} />
+          <Select label="ÙˆØ­Ø¯Ø© Ø§Ù„Ù‚ÙŠØ§Ø³" placeholder="Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø©" options={units} value={unitId} onChange={(e) => setUnitId(e.target.value)} disabled={saving} />
         </div>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
-          <Button onClick={submit} loading={saving}>حفظ المورد</Button>
+          <Button variant="ghost" onClick={onCancel} disabled={saving}>Ø¥Ù„ØºØ§Ø¡</Button>
+          <Button onClick={submit} loading={saving}>Ø­ÙØ¸ Ø§Ù„Ù…ÙˆØ±Ø¯</Button>
         </div>
       </div>
     </div>
@@ -551,25 +548,25 @@ function NewPersonModal({ onCancel, onSave, saving }: { onCancel: () => void; on
   const [error, setError] = useState<string | null>(null)
 
   const submit = async () => {
-    if (!name.trim()) return setError('أدخل اسم الشخص')
+    if (!name.trim()) return setError('Ø£Ø¯Ø®Ù„ Ø§Ø³Ù… Ø§Ù„Ø´Ø®Øµ')
     setError(null)
     await onSave(name.trim(), phone.trim())
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="إضافة شخص مستلم جديد">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Ø¥Ø¶Ø§ÙØ© Ø´Ø®Øµ Ù…Ø³ØªÙ„Ù… Ø¬Ø¯ÙŠØ¯">
       <div className="absolute inset-0" onClick={onCancel} aria-hidden />
       <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
-        <h2 className="mb-1 text-sm font-bold text-gray-900">إضافة شخص مستلم جديد</h2>
-        <p className="mb-4 text-xs text-gray-500">سيتم حفظ الشخص في قاعدة البيانات وسيبقى متاحاً في كل عمليات التسليم القادمة.</p>
+        <h2 className="mb-1 text-sm font-bold text-gray-900">Ø¥Ø¶Ø§ÙØ© Ø´Ø®Øµ Ù…Ø³ØªÙ„Ù… Ø¬Ø¯ÙŠØ¯</h2>
+        <p className="mb-4 text-xs text-gray-500">Ø³ÙŠØªÙ… Ø­ÙØ¸ Ø§Ù„Ø´Ø®Øµ ÙÙŠ Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ÙˆØ³ÙŠØ¨Ù‚Ù‰ Ù…ØªØ§Ø­Ø§Ù‹ ÙÙŠ ÙƒÙ„ Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©.</p>
         <div className="space-y-3">
-          <Input label="الاسم الرباعي" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} disabled={saving} />
-          <Input label="رقم الهاتف (اختياري)" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" disabled={saving} />
+          <Input label="Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø±Ø¨Ø§Ø¹ÙŠ" autoFocus value={name} onChange={(e) => setName(e.target.value)} error={error} disabled={saving} />
+          <Input label="Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" disabled={saving} />
         </div>
-        <p className="mt-3 text-xs text-gray-500">سيتم حفظ الشخص في قاعدة البيانات وسيبقى متاحاً في كل عمليات التسليم القادمة.</p>
+        <p className="mt-3 text-xs text-gray-500">Ø³ÙŠØªÙ… Ø­ÙØ¸ Ø§Ù„Ø´Ø®Øµ ÙÙŠ Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ÙˆØ³ÙŠØ¨Ù‚Ù‰ Ù…ØªØ§Ø­Ø§Ù‹ ÙÙŠ ÙƒÙ„ Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©.</p>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onCancel} disabled={saving}>إلغاء</Button>
-          <Button onClick={submit} loading={saving}>حفظ الشخص</Button>
+          <Button variant="ghost" onClick={onCancel} disabled={saving}>Ø¥Ù„ØºØ§Ø¡</Button>
+          <Button onClick={submit} loading={saving}>Ø­ÙØ¸ Ø§Ù„Ø´Ø®Øµ</Button>
         </div>
       </div>
     </div>

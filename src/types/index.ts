@@ -148,6 +148,8 @@ export interface StockMovement {
   branch_id?: string
   from_branch_id?: string
   to_branch_id?: string
+  to_branch_name?: string
+  from_branch_name?: string
   recipient_person_id?: string
   recipient_name?: string
   recipient_department_id?: string

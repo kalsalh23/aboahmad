@@ -44,6 +44,14 @@ function RestGet {
   return Invoke-RestMethod -Uri "$script:SbUrl/rest/v1/$Path" -Headers $h -TimeoutSec 180
 }
 
+function RestGetRaw {
+  param([Parameter(Mandatory = $true)][string]$Path, [string]$Token = "")
+  $h = @{ "apikey" = $script:SbKey }
+  if ($Token) { $h["Authorization"] = "Bearer $Token" }
+  $resp = Invoke-WebRequest -Uri "$script:SbUrl/rest/v1/$Path" -Headers $h -TimeoutSec 180 -UseBasicParsing
+  return $resp.RawContentStream.ToArray()
+}
+
 function RestPost {
   param([Parameter(Mandatory = $true)][string]$Path, [string]$Body, [string]$Token = "")
   $h = @{ "apikey" = $script:SbKey; "Content-Type" = "application/json; charset=utf-8" }

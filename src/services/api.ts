@@ -463,8 +463,7 @@ export const api = {
             from_branch:branches!stock_movements_from_branch_id_fkey(name_ar),
             to_branch:branches!stock_movements_to_branch_id_fkey(name_ar),
             recipient:people(name_ar)
-          `)
-          .order('created_at', { ascending: false })
+          `)          .order('created_at', { ascending: false })
         if (filters?.type) q = q.eq('movement_type', filters.type)
         if (filters?.resource_id) q = q.eq('resource_id', filters.resource_id)
         if (filters?.performed_by) q = q.eq('performed_by', filters.performed_by)
@@ -521,7 +520,7 @@ export const api = {
           p_quantity: input.quantity,
           p_recipient_name: input.recipient_name ?? null,
           p_recipient_person_id: input.recipient_person_id ?? null,
-          p_branch_id: input.branch_id ?? null,
+          p_branch_name: input.branch_name ?? null,
           p_department_id: input.department_id ?? null,
           p_document_number: input.document_number ?? null,
           p_reason: input.reason ?? null,
@@ -631,7 +630,7 @@ export interface DeliverInput {
   quantity: number
   recipient_name?: string
   recipient_person_id?: string
-  branch_id?: string
+  branch_name?: string
   department_id?: string
   document_number?: string
   reason?: string

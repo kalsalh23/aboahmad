@@ -25,19 +25,20 @@ interface ReportDef {
   description: string
   needsPeriod: boolean
   needsResource: boolean
+  needsCategory: boolean
   columns: string[]
 }
 
 const REPORTS: ReportDef[] = [
-  { key: 'balance', title: 'تقرير الرصيد الحالي', description: 'أرصدة جميع الموارد حتى اللحظة', needsPeriod: false, needsResource: false, columns: ['النوع', 'المورد', 'الوحدة', 'الرصيد', 'الحد الأدنى', 'آخر تحديث'] },
-  { key: 'received', title: 'المواد المستلمة خلال فترة', description: 'كل عمليات الاستلام ضمن الفترة المحددة', needsPeriod: true, needsResource: false, columns: ['رقم الحركة', 'التاريخ', 'المورد', 'النوع', 'الكمية', 'الجهة الموردة', 'رقم المستند', 'الموظف'] },
-  { key: 'delivered', title: 'المواد المسلّمة خلال فترة', description: 'كل عمليات التسليم ضمن الفترة المحددة', needsPeriod: true, needsResource: false, columns: ['رقم الحركة', 'التاريخ', 'المورد', 'النوع', 'الكمية', 'المستلم', 'الفرع', 'رقم المستند', 'الموظف'] },
-  { key: 'by_category', title: 'تقرير حسب نوع المورد', description: 'ملخص الحركات مجمّعة حسب التصنيف', needsPeriod: true, needsResource: false, columns: ['نوع المورد', 'عدد الحركات', 'إجمالي الاستلام', 'إجمالي التسليم'] },
-  { key: 'by_branch', title: 'تقرير حسب الفرع أو الجهة', description: 'الحركات مصنّفة حسب الفرع المستلم', needsPeriod: true, needsResource: false, columns: ['الفرع', 'عدد التسليمات', 'إجمالي الكمية'] },
-  { key: 'by_person', title: 'تقرير حسب الشخص المستلم', description: 'ما تم تسليمه لكل شخص', needsPeriod: true, needsResource: false, columns: ['الشخص المستلم', 'عدد العمليات', 'إجمالي الكمية'] },
-  { key: 'by_performer', title: 'تقرير حسب الموظف المنفذ', description: 'العمليات التي نفّذها كل موظف', needsPeriod: true, needsResource: false, columns: ['الموظف', 'عدد العمليات', 'استلام', 'تسليم'] },
-  { key: 'movement_log', title: 'سجل حركة مورد معين', description: 'كل حركات مورد محدد بالتفصيل', needsPeriod: true, needsResource: true, columns: ['رقم الحركة', 'النوع', 'الكمية', 'التفاصيل', 'التاريخ', 'الموظف'] },
-  { key: 'inventory_audit', title: 'تقرير الجرد والفروقات', description: 'مقارنة الرصيد الدفتري بسجل الحركات', needsPeriod: false, needsResource: false, columns: ['المورد', 'الرصيد الدفتري', 'إجمالي الاستلام', 'إجمالي التسليم', 'الفرق'] },
+  { key: 'balance', title: 'تقرير الرصيد الحالي', description: 'أرصدة جميع الموارد حتى اللحظة', needsPeriod: false, needsResource: false, needsCategory: false, columns: ['النوع', 'المورد', 'الوحدة', 'الرصيد', 'الحد الأدنى', 'آخر تحديث'] },
+  { key: 'received', title: 'المواد المستلمة خلال فترة', description: 'كل عمليات الاستلام ضمن الفترة المحددة', needsPeriod: true, needsResource: false, needsCategory: true, columns: ['رقم الحركة', 'التاريخ', 'المورد', 'النوع', 'الكمية', 'الجهة الموردة', 'رقم المستند', 'الموظف'] },
+  { key: 'delivered', title: 'المواد المسلّمة خلال فترة', description: 'كل عمليات التسليم ضمن الفترة المحددة', needsPeriod: true, needsResource: false, needsCategory: true, columns: ['رقم الحركة', 'التاريخ', 'المورد', 'النوع', 'الكمية', 'المستلم', 'الفرع', 'رقم المستند', 'الموظف'] },
+  { key: 'by_category', title: 'تقرير حسب نوع المورد', description: 'ملخص الحركات مجمّعة حسب التصنيف', needsPeriod: true, needsResource: false, needsCategory: false, columns: ['نوع المورد', 'عدد الحركات', 'إجمالي الاستلام', 'إجمالي التسليم'] },
+  { key: 'by_branch', title: 'تقرير حسب الفرع أو الجهة', description: 'الحركات مصنّفة حسب الفرع المستلم', needsPeriod: true, needsResource: false, needsCategory: true, columns: ['الفرع', 'عدد التسليمات', 'إجمالي الكمية'] },
+  { key: 'by_person', title: 'تقرير حسب الشخص المستلم', description: 'ما تم تسليمه لكل شخص', needsPeriod: true, needsResource: false, needsCategory: true, columns: ['الشخص المستلم', 'عدد العمليات', 'إجمالي الكمية'] },
+  { key: 'by_performer', title: 'تقرير حسب الموظف المنفذ', description: 'العمليات التي نفّذها كل موظف', needsPeriod: true, needsResource: false, needsCategory: true, columns: ['الموظف', 'عدد العمليات', 'استلام', 'تسليم'] },
+  { key: 'movement_log', title: 'سجل حركة مورد معين', description: 'كل حركات مورد محدد بالتفصيل', needsPeriod: true, needsResource: true, needsCategory: false, columns: ['رقم الحركة', 'النوع', 'الكمية', 'التفاصيل', 'التاريخ', 'الموظف'] },
+  { key: 'inventory_audit', title: 'تقرير الجرد والفروقات', description: 'مقارنة الرصيد الدفتري بسجل الحركات', needsPeriod: false, needsResource: false, needsCategory: false, columns: ['المورد', 'الرصيد الدفتري', 'إجمالي الاستلام', 'إجمالي التسليم', 'الفرق'] },
 ]
 
 export default function Reports() {
@@ -45,7 +46,9 @@ export default function Reports() {
   const [from, setFrom] = useState(() => new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0, 10))
   const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10))
   const [resources, setResources] = useState<{ value: string; label: string }[]>([])
+  const [categories, setCategories] = useState<{ value: string; label: string }[]>([])
   const [resourceId, setResourceId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [headers, setHeaders] = useState<string[]>([])
@@ -56,6 +59,7 @@ export default function Reports() {
 
   useEffect(() => {
     api.resources.list().then((res) => setResources((res.data ?? []).map((r) => ({ value: r.id, label: r.name_ar }))))
+    api.categories.list().then((res) => setCategories((res.data ?? []).filter((c) => c.is_active).map((c) => ({ value: c.id, label: c.name_ar }))))
   }, [])
 
   const runReport = useCallback(async () => {
@@ -81,18 +85,20 @@ export default function Reports() {
       } else if (reportKey === 'received' || reportKey === 'delivered') {
         const type = reportKey === 'received' ? 'receipt' : 'delivery'
         const res = await api.movements.list({ type, from: range.from, to: range.to, limit: 500 })
-        const data = res.data ?? []
+        const all = res.data ?? []
+        const data = categoryId ? all.filter((m) => m.resource?.category_id === categoryId) : all
         setHeaders(REPORTS.find((r) => r.key === reportKey)!.columns)
         setRows(
           data.map((m) =>
             reportKey === 'received'
               ? [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.supplier_name ?? m.from_branch?.name_ar ?? '', m.document_number ?? '', m.performer?.full_name_ar ?? '']
-              : [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.recipient_name ?? '', m.to_branch?.name_ar ?? '', m.document_number ?? '', m.performer?.full_name_ar ?? '']
+              : [m.movement_number, m.movement_date ? formatDateTime(m.movement_date) : '', m.resource?.name_ar ?? '', m.resource?.category?.name_ar ?? '', m.quantity, m.recipient_name ?? '', m.to_branch_name ?? m.to_branch?.name_ar ?? '', m.document_number ?? '', m.performer?.full_name_ar ?? '']
           )
         )
       } else if (reportKey === 'by_category' || reportKey === 'by_branch' || reportKey === 'by_person' || reportKey === 'by_performer') {
         const res = await api.movements.list({ from: range.from, to: range.to, limit: 500 })
-        const data = res.data ?? []
+        const all = res.data ?? []
+        const data = categoryId ? all.filter((m) => m.resource?.category_id === categoryId) : all
         if (reportKey === 'by_category') {
           const map = new Map<string, { receipt: number; delivery: number; count: number }>()
           data.forEach((m) => {
@@ -108,13 +114,13 @@ export default function Reports() {
         } else if (reportKey === 'by_branch') {
           const map = new Map<string, { count: number; qty: number }>()
           data.filter((m) => m.movement_type === 'delivery').forEach((m) => {
-            const key = m.to_branch?.name_ar ?? 'غير محدد'
+            const key = m.to_branch_name ?? m.to_branch?.name_ar ?? 'غير محدد'
             const cur = map.get(key) ?? { count: 0, qty: 0 }
             cur.count += 1
             cur.qty += m.quantity
             map.set(key, cur)
           })
-          setHeaders(['الفرع', 'عدد التسليمات', 'إجمالي الكمية'])
+          setHeaders(['الفرع / الجهة', 'عدد التسليمات', 'إجمالي الكمية'])
           setRows([...map.entries()].map(([k, v]) => [k, v.count, v.qty]))
         } else if (reportKey === 'by_person') {
           const map = new Map<string, { count: number; qty: number }>()
@@ -183,7 +189,7 @@ export default function Reports() {
     } finally {
       setLoading(false)
     }
-  }, [from, to, reportKey, resourceId])
+  }, [from, to, reportKey, resourceId, categoryId])
 
   useEffect(() => {
     runReport()
@@ -237,6 +243,15 @@ export default function Reports() {
                 options={resources}
                 value={resourceId}
                 onChange={(e) => setResourceId(e.target.value)}
+              />
+            )}
+            {current.needsCategory && (
+              <Select
+                label="نوع المورد"
+                placeholder="كل الأنواع"
+                options={categories}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
               />
             )}
             <Button block onClick={runReport} loading={loading}>
